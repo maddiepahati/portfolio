@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html>
+    <style>
+        body {
+          margin: 0px 125px;
+          background-color: rgb(240, 240, 240);
+        }
+        div {
+          /* text-align: center; */
+          disply:inline-block;
+        }
+        button {
+          background-color: #008080; /* teal */
+          border: none;
+          color: white;
+          padding: 16px 32px;
+          width: 175px;
+          text-align: center;
+          border-radius: 4px;
+          font-size: 16px;
+          margin: 4px 2px;
+          opacity: 0.6;
+          transition: 0.3s;
+          display: inline-block;
+          text-decoration: none;
+          cursor: pointer;
+          position:
+        }
+        button:hover {opacity: 1}
+        .backtotop {text-align: right;}
+        a {
+          text-decoration: none;
+          color: white;
+          display: block;
+        }
+        .link {color: blue}
+
+    </style>
+    <body>
+        <a name="top"></a>
+        <h3 class="name" style="font-family:arial;">CS184: Computer Graphics and Imaging, Spring 2019<br>Maddie Pahati, cs184-abo</h3>
+
+        <h1 class="proj" style="font-family:arial; text-align:center;">Project 3-1: Pathtracer</h1>
+
+        <div align="middle">
+          <button class="button">
+              <a href="#Part1" class="button">Part 1</a>
+          </button>
+          <button class="button">
+              <a href="#Part2" class="button">Part 2</a>
+          </button>
+          <button class="button">
+              <a href="#Part3" class="button">Part 3</a>
+          </button>
+          <button class="button">
+              <a href="#Part4" class="button">Part 4</a>
+          </button>
+          <button class="button">
+              <a href="#Part5" class="button">Part 5</a>
+          </button>
+        </div>
+
+        <br>
+        <h2 style="font-family:arial;">Overview</h2>
+            <p style="font-family:arial;">
+              For this project, we implemented a pathtracing algorithm that allows us to render images using the core
+              routines of a physically-based render, which simulates light materials in a 3D space and outputs
+              realistic images. To generate such realistics results, we implemented ray generation and scene
+              intersection, a Bounding Volume Hierarchy acceleration structure, direct and global illumination, and
+              adaptive sampling.
+            </p>
+
+        <br>
+        <h1 id="Part1" style="font-family:arial;text-align:center;">Part 1: Ray Generation and Scene Intersection</h1>
+        <h2 style="font-family:arial;">Generating Camera Rays</h2>
+            <p style="font-family:arial;">
+              To generate camera rays, we must complete the <code>raytrace_pixel</code> function which generates
+              <code>ns_aa</code> rays and computes the average spectrum that corresponds to the integral of the
+              irradiance of a given pixel. We first offset the pixel space coordinates by a randomly sampled point in [0,1]^2
+              and then scale down to [0,1]^2 coordinates by dividing by the width and height of the sampleBuffer.
+              If there is only one ray, i.e. <code>ns_aa = 1</code>, we offset by (0.5, 0.5) to give us the center pixel.
+              Once we have offsetted and scaled, we cast a ray using <code>camera->generate_ray</code> and accumulate
+              its radiance. Finally, we divided all the spectrums by the number of samples, <code>ns_aa</code>, to get the average
+              spectrum.
+            </p>
+
+        <h2 style="font-family:arial;">Intersecting Triangles</h2>
+            <p style="font-family:arial;">
+              After casting rays, we will still render out a black screen. That is because although we are simulating our light
+              rays, we are not determining if it actually hits a primitive object. This is the work of the <code>Triangle::intersect()</code>
+              method which will determine if we hit any triangles. Here we use the fast ray-triangle intersection algorithm, the
+              Möller-Trumbore algorithm, that uses barycentric coordinates to compute the intersection point. Given a ray and the three points
+              of a triangle, we can use the Möller-Trumbore algorithm shown below to get the ray's <code>t</code>-value at the
+              hit point and the barycentric coordinates <code>b1</code> and <code>b2</code>. To get the final barycentric coordinate,
+              we compute <code>1-b1-b2</code>.
+            </p>
+            <figure style="text-align:center;">
+              <img src="images/p1c_mt.png" alt="CB" width="500px">
+            </figure>
+            <p style="font-family:arial;">
+              An intersection is determined if all three barycentric coordinates are within [0,1] and if <code>t</code> is within the ray's
+              valid range of <code>t</code> values. We then update ray's <code>max_t = t</code> to keep track of the closest
+              intersection and to save us time by disregarding intersections with primitives further away from the camera.
+              Then we populate <code>isect</code>, and now we can render triangles! Here is an empty Cornell Box:
+            </p>
+            <figure style="text-align:center;">
+              <img src="images/p1c.png" alt="CB" width="500px">
+              <figcaption style="font-family:arial;">dae/sky/CBspheres_lambertian.dae</figcaption>
+            </figure>
+
+        <h2 style="font-family:arial;">Intersecting Spheres</h2>
+            <p style="font-family:arial;">
+              There are spheres in this scene, but they do not show up because we have only tested for intersections with triangles. Now
+              we will implement <code>Sphere::intersect()</code> in a similar approach to <code>Triangle::intersect()</code>. The main
+              difference is that we use the quadratic formula:
+            </p>
+            <figure style="text-align:center;">
+              <img src="images/p1_quadratic1.png" alt="Quadratic Formula" width="300px">
+            </figure>
+            <p style="font-family:arial;">
+              where a, b, and c are:
+            </p>
+            <figure style="text-align:center;">
+              <img src="images/p1_quadratic2.png" alt="Quadratic Formula" width="300px">
+            </figure>
+            <p style="font-family:arial;">
+              There are three cases we must keep track of to determine if there is an intersection. Given the computed t values,
+              if (1) both are positive, it is a valid intersection. If (2) one is positive and the other is negative, it is also
+              a valid intersection. If (3) both are negative, the ray is considered to miss the sphere, and we mark this as not a
+              valid intersection. Like <code>Triangle::intersect()</code>, we update ray's <code>max_t</code> and populate <code>isect</code>.
+              Now we can render spheres!
+            </p>
+            <figure style="text-align:center;">
+              <img src="images/p1d.png" alt="CB" width="500px">
+              <figcaption style="font-family:arial;">dae/sky/CBspheres_lambertian.dae</figcaption>
+            </figure>
+            <p style="font-family:arial;">
+              Here are the normal shading for the bunny and coil scenes:
+            </p>
+            <div>
+              <table style="width=100%;">
+                <tr>
+                  <td>
+                    <img src="images/p1_bunny.png" align="middle" width="500px"/>
+                  </td>
+                  <td>
+                    <img src="images/p1_coil.png" align="middle" width="500px"/>
+                  </td>
+                </tr>
+              </table>
+            </div>
+
+        <br>
+        <div class="backtotop">
+          <button class="button">
+              <a href="#Top" class="button">Back to Top</a>
+          </button>
+        </div>
+
+        <br>
+        <h1 id="Part2" style="font-family:arial; text-align:center;">Part 2: Bounding Volume Hierarchy</h1>
+        <h2 style="font-family:arial;">Constructing the BVH</h2>
+            <p style="font-family:arial;">
+              The bunny and coil scenes took quite some time to render, which means scenes with even more complicated
+              geometry like dae/meshedit/maxplanck.dae and dae/sky/CBlucy.dae will take forever. However, we can be more
+              efficient by constructing a Bounding Volume Hierarchy (BVH).
+              <br>
+              <br>
+              We begin by calculating the bounding box for each primitive and initializing a <code>BVHNode</code> for
+              that bounding box. In this recursive function, we set the base case to be if the number of primitives is less than
+              <code>max_leaf_size</code>, we store these primitives in the node. Otherwise, we split the primitives into two lists,
+              a left and a right list. The split point was determined by the midpoint of bounding box's largest axis dimension. If
+              the primitive's centroid's point on the same axis is less than the split point, it is allocated to the left. Otherwise, it will be pushed
+              to the right. After we separate the primitives, we have a special case to check if either list is empty to prevent
+              infinite recursion. If either list happens to be empty, we take the latest primitive added to the list and move it to
+              the empty list. Then we assign the node's left and right children to be a recursive call to <code>construct_bvh()</code>
+              with the respective primitive lists passed in.
+              <br>
+              <br>
+              The BVH visualization mode was very helpful to determine if my implementation was correct. Here are some of the steps
+              of the BVH construction from the overall bounding box all the way down to a leaf node:
+            </p>
+            <div>
+              <table style="width=100%;">
+                <tr>
+                  <td>
+                    <img src="images/p2_BVHvis1.png" align="middle" width="500px"/>
+                  </td>
+                  <td>
+                    <img src="images/p2_BVHvis2.png" align="middle" width="500px"/>
+                  </td>
+                </tr>
+                <br>
+                <tr>
+                  <td>
+                    <img src="images/p2_BVHvis3.png" align="middle" width="500px"/>
+                  </td>
+                  <td>
+                    <img src="images/p2_BVHvis4.png" align="middle" width="500px"/>
+                  </td>
+                </tr>
+                <br>
+                <tr>
+                  <td>
+                    <img src="images/p2_BVHvis5.png" align="middle" width="500px"/>
+                  </td>
+                  <td>
+                    <img src="images/p2_BVHvis6.png" align="middle" width="500px"/>
+                  </td>
+                </tr>
+              </table>
+            </div>
+
+            <h2 style="font-family:arial;">Intersecting <code>BBox</code></h2>
+            <p style="font-family:arial;">
+              To see if a ray intersects the bbox, we use the ray and axis-aligned-plane intersection equation and the ray and
+              axis-aligned-box intersection method as described in lecture. Since the planes are perpendicular to their
+              respective axes, the ray and axis-aligned-plane intersection equation simplies to:
+            </p>
+            <figure style="text-align:center;">
+              <img src="images/p2_rayplane.png" alt="Ray Plane" width="500px">
+            </figure>
+            <p style="font-family:arial;">
+              which can then be extending to the y- and z- axes as well. Given this simplified equation, we can compute the values
+              where the ray intersects the box planes. We compute the tmin and tmax values for each axis and we update
+              <code>t0</code> to be the max{tminx,tminy,tminz} and <code>t1</code> to be min{tmaxx,tmaxy,tmaxz}. We can have early termination,
+              i.e. the ray misses the bounding box, if (1) <code>(tminx > tmaxy || tmaxx < tminy)</code>, (2)
+              <code>(max{tminx,tminy} > tmaxz || tminz > min{tminx,tminy})</code>, or <code>(t0 > r.max_t or t1 < r.min_t)</code>.
+            </p>
+
+            <h2 style="font-family:arial;">Intersecting <code>BVHAccel</code></h2>
+            <p style="font-family:arial;">
+              Our BVH construction and BBox intersection methods will now be used to implement <code>BVHAccel::intersect()</code> which
+              determines if there is a valid intersection between the given ray and a primitive inside the provided BVHNode. First, we
+              check if the ray intersects the BBox. If this is not true, we can shortcircuit and return false. This saves us a lot of time when
+              rendering as we do not have to check the entire 3D space if there is a hit, which is why the BVH is so crucial. Otherwise,
+              we recurse all the way down the BVH -- making sure to check if the ray intersects the current BBox -- until we hit the leaf
+              node where the primitives are stored. Once we reach the leaf node, we check if the ray intersects any of the primitives and return
+              true if it does. I did not have to worry about populating <code>isect</code> or keeping track of the closest intersection in this
+              function in this method because both tasks were already handled in my Triangle and Sphere <code>intersect()</code> functions.
+              <br>
+              <br>
+              Now we can render the more complicated geometry in a matter of seconds!
+            </p>
+            <div>
+              <table style="width=100%;">
+                <tr>
+                  <td>
+                    <img src="images/p2_max_BVH.png" align="middle" width="500px"/>
+                    <figcaption style="font-family:arial;"align="middle">dae/meshedit/maxplanck.dae (0.8653s)</figcaption>
+                  </td>
+                  <td>
+                    <img src="images/p2_lucy_BVH.png" align="middle" width="500px"/>
+                    <figcaption style="font-family:arial;"align="middle">dae/sky/CBlucy.dae (0.4251s)</figcaption>
+                  </td>
+                </tr>
+              </table>
+            </div>
+
+            <br>
+            <h2 style="font-family:arial;">Speed Experiments: To BVH or Not to BVH</h2>
+            <p style="font-family:arial;">
+              While Max and Lucy were too high-poly to test with and without the BVH, I was able to perform some speed experiments
+              on the more mild geometry scenes dae/meshedit/cow.dae and dae/sky/CBcoil.dae. Without the BVH construction, the cow
+              rendered in 168.9384s and the coil rendered in 219.8676s. With the BVH construction, the cow rendered in 0.7955s and
+              the coil in 0.3658s. This is a SIGNIFICANT speed-up which is due to how the BVH stores primitives in tighter bounding
+              boxes that enable us to shortcircuit if a ray misses the bbox.
+            </p>
+            <div>
+              <table style="width=100%;">
+                <tr>
+                  <td>
+                    <img src="images/p2_cow_BVH.png" align="middle" width="500px"/>
+                    <figcaption style="font-family:arial;"align="middle">cow</figcaption>
+                  </td>
+                  <td>
+                    <img src="images/p2_coil_BVH.png" align="middle" width="500px"/>
+                    <figcaption style="font-family:arial;"align="middle">coil</figcaption>
+                  </td>
+                </tr>
+              </table>
+            </div>
+
+        <br>
+        <div class="backtotop">
+          <button class="button">
+              <a href="#Top" class="button">Back to Top</a>
+          </button>
+        </div>
+
+
+        <br>
+        <h1 id="Part3" style="font-family:arial; text-align:center;">Part 3: Direct Illumination</h1>
+        <h2 style="font-family:arial;">Diffuse BSDF</h2>
+            <p style="font-family:arial;">
+              Now that we can quickly render meshes, even scenes with complicated geometry, we get even more realistic images
+              by shading them! This is done by first getting the BSDF, which the primitive's reflectance divided by PI. We divide
+              by PI to account for the cosine factor when integrating over a hemisphere. This allows us to shade an object with a
+              diffuse/lambertian material which makes the mesh look matte.
+            </p>
+
+        <h2 style="font-family:arial;">Direct Lighting: Uniform Hemisphere Sampling</h2>
+            <p style="font-family:arial;">
+              To have these materials show up, we begin by simulating direct lighting, which is the light that comes from the source
+              and onto the object. Direct lighting will gives us effects like area light shadows and ambient occlusion. The first method
+              we implement for direct lighting is uniform hemisphere sampling which estimates
+              the amount of direct light by uniformly sampling over a hemisphere surrounding a point. For each sample, we get
+              a sample <code>wi</code> in object space which we then transform to world coordinates, <code>wi_world</code>. The pdf I
+              calculated to be 1/2PI. We then create a new ray and a new intersect struct. The new ray's origin is the hit point offsetted
+              by <code>wi_world</code> multiplied by the constant <code>EPS_D</code>, and it points in the direction of <code>wi_world</code>.
+              If the ray intersects the scene, then we get the intersected material's emitted radiance using <code>intersect.bsdf->get_emission()</code>.
+              However, what we want is the material's irradiance, so to properly convert radiance to irradiance, we must multiply by the BSDF
+              <code>isect.bsdf->f(w_out, wi)</code> and <code>cos_theta(wi)</code> and then divide by the pdf. Finally, we accumulate all
+              the irradiances and average them out by dividing by the number of samples. The first column down belows shows the uniform
+              hemisphere sampling for the bunny and spheres.
+            </p>
+
+        <h2 style="font-family:arial;">Direct Lighting: Importance Sampling</h2>
+            <p style="font-family:arial;">
+              Notice how the uniform hemisphere sampling images are a lot noisier than the images in the second column. The noice can be
+              reduced to get better images using the second method we will implement known as importance sampling. Importance sampling
+              samples each light in a scene directly rather than uniformly sample over a hemisphere.
+              <br>
+              <br>
+              For each light in a scene, we first check if it is a delta light. If it is, all samples would be the same so we would just need
+              to take 1 sample, otherwise we take <code>ns_area_light</code> sample. Then for each sample, we get the incoming radiance by
+              calling <code>s->sample_L</code> which also gives us the direction from hit_p to the light source, <code>wi</code>, the
+              distance from hit_p to the light source, and the pdf evaluated at <code>wi</code>. We then convert to object space to get <code>w_in</code>
+              because <code>wi</code> returned by <code>sample_L</code> is in world space. Now as long as <code>w_in.z</code> and the pdf are
+              greater than <code>0</code>, we create a new shadow ray and new intersection, similar to the uniform hemisphere sampling implementation.
+              The new ray's origin is the hit point offsetted by <code>wi</code> multiplied by <code>EPS_D</code> and points in the direction
+              of <code>wi</code>. We set the new ray's <code>max_t=distToLight</code> to prevent us from checking for intersections behind the
+              light source. If the ray does not intersect the scene, we convert the radiance analogous to how we did it in uniform hemisphere
+              sampling. Finally, we accumulate all the irradiances for this light and average them out by dividing by the number of samples.
+              <br>
+              <br>
+              The results are images with a lot less noise!
+            </p>
+            <div>
+              <table style="width=100%;">
+                <tr>
+                  <td>
+                    <img src="images/p3a_CBbunny_64_32.png" align="middle" width="500px"/>
+                    <figcaption style="font-family:arial;"align="middle">Bunny Uniform Hemisphere Sampling</figcaption>
+                  </td>
+                  <td>
+                    <img src="images/p3b_bunny_64_32.png" align="middle" width="500px"/>
+                    <figcaption style="font-family:arial;"align="middle">Bunny Importance Sampling</figcaption>
+                  </td>
+                </tr>
+                <br>
+                <tr>
+                  <td>
+                    <img src="images/p3a_CBspheres_lambertian_64_32.png" align="middle" width="500px"/>
+                    <figcaption style="font-family:arial;"align="middle">Spheres Uniform Hemisphere Sampling</figcaption>
+                  </td>
+                  <td>
+                    <img src="images/p3b_spheres_64_32.png" align="middle" width="500px"/>
+                    <figcaption style="font-family:arial;"align="middle">Spheres Importance Sampling</figcaption>
+                  </td>
+                </tr>
+              </table>
+            </div>
+            <figure style="text-align:center;">
+              <img src="images/p3b_dragon_64_32.png" alt="Dragon Importance Sampling" width="500px">
+              <figcaption style="font-family:arial;"align="middle">Dragon Importance Sampling</figcaption>
+            </figure>
+            <p style="font-family:arial;">
+              Here is the bunny rendered with 1, 4, 16, and 64 light rays, 1 sample per pixel, and importance sampling. As the number
+              of light rays increase, the more we sample and the less noise we get in the image. The shadows also get more defined and
+              soften as we increase the rays and sampling.
+            </p>
+            <div>
+              <table style="width=100%;">
+                <tr>
+                  <td>
+                    <img src="images/p3c_bunny_1_1.png" align="middle" width="500px"/>
+                    <figcaption style="font-family:arial;"align="middle">1 light ray</figcaption>
+                  </td>
+                  <td>
+                    <img src="images/p3c_bunny_1_4.png" align="middle" width="500px"/>
+                    <figcaption style="font-family:arial;"align="middle">4 light rays</figcaption>
+                  </td>
+                </tr>
+                <br>
+                <tr>
+                  <td>
+                    <img src="images/p3c_bunny_1_16.png" align="middle" width="500px"/>
+                    <figcaption style="font-family:arial;"align="middle">16 light rays</figcaption>
+                  </td>
+                  <td>
+                    <img src="images/p3c_bunny_1_64.png" align="middle" width="500px"/>
+                    <figcaption style="font-family:arial;"align="middle">64 light rays</figcaption>
+                  </td>
+                </tr>
+              </table>
+            </div>
+        <h2 style="font-family:arial;">Uniform Hemisphere Sampling vs. Importance Sampling</h2>
+            <p style="font-family:arial;">
+              As we already seen, uniform hemisphere sampling creates noisier images than importance sampling because we are sampling
+              less in uniform hemisphere sampling. The random samples taken in the half-circle around a point may not intersect with the
+              scene which will lead to gaps in our image. That is not to say importance sampling will always give us clear images.
+              Sampling only 1 or 4 lights will still lead to noisy results. This is because a shadow ray may intersect with a primitive,
+              and thus create gaps in like images shown in the above comparison.
+            </p>
+
+
+        <br>
+        <div class="backtotop">
+          <button class="button">
+              <a href="#Top" class="button">Back to Top</a>
+          </button>
+        </div>
+
+        <br>
+        <h1 id="Part4" style="font-family:arial; text-align:center;">Part 4: Global Illumination</h1>
+            <p style="font-family:arial;">
+              Now that we have direct lighting, we can implement indirect lighting, which is the light coming from the reflectance.
+              Summing over direct lighting and indirect gives us the global illumination for a scene.
+              <br>
+              <br>
+              We begin by filling out <code>zero_bounce_radiance</code> which is just the source light, so all we have to do is return
+              the point's emmission by calling <code>get_emission()</code>.
+              <br>
+              <br>
+              Next is <code>one_bounce_radiance</code>, which is just the direct lighting so we return either the uniform hemisphere
+              sampling or importance sampling function depending on the parameter <code>direct_hemisphere_sample</code>.
+              <br>
+              <br>
+              The trickiest part is implementing <code>at_least_one_bounce_radiance</code> which at a higher level recursively sums up
+              the direct illumination of a ray depending on how many bounces there are. We begin by instantiating <code>L_out</code> to
+              be a call to <code>one_bounce_radiance</code> because we need at least one bounce. Then we calculate <code>w_in</code> and
+              the pdf using the BSDF's <code>sample_f()</code> function as well as the continuation probability, <code>p</code>, which I set to be <code>0.6</code>.
+              Here if <code>pdf<=0</code> or <code>r.depth==1</code>, we can shortcircuit and return <code>L_out</code>. This also serves as
+              our base case when we recurse.
+              <br>
+              <br>
+              Next if <code>max_ray_depth>1</code>, we want to guarantee that there will be at least one more bounce which we can achieve by
+              adding the condition <code>r.depth==max_ray_depth</code>. After this bounce, we determine if we want to continue tracing the ray
+              using Russian roulette in which we used the function, <code>coin_flip(p)</code>. If the flip is true and <code>r.depth>1</code>,
+              we can continue tracing our ray.
+              <br>
+              <br>
+              Should the above criteria be met, we then create a new ray with its origin at the hit point offsetted by
+              <code>EPS_D*wi</code> in the direction of <code>wi</code> as well as a new intersection. We also make sure set the
+              <code>newray.depth=ray.depth-1</code> to prevent infinite recursion. If the new ray intersects the scene, we recursively
+              trace this ray by calling <code>at_least_one_bounce_radiance</code> to approximate the incoming radiance for the higher bounces. We then
+              convert the incoming radiance to outgoing radiance by multiplying by the BSDF and cosine factor then dividing by the pdf and
+              continuation probability. If <code>max_ray_depth>1</code> and this is our guaranteed bounce, then we can set <code>p=1</code> and
+              just divide by the pdf. Finally, we accumulate the outgoing radiance in <code>L_out</code>.
+            </p>
+            <br>
+            <figure style="text-align:center;">
+              <img src="images/p4a_global_dragon.png" alt="Dragon Global" width="500px">
+              <figcaption style="font-family:arial;"align="middle">Dragon global illumination</figcaption>
+            </figure>
+            <div align="middle">
+              <table style="width=100%;">
+                <tr>
+                  <td>
+                    <img src="images/p4b_spheres_direct.png" align="middle" width="300px"/>
+                    <figcaption style="font-family:arial;"align="middle">Direct Lighting</figcaption>
+                  </td>
+                  <td>
+                    <img src="images/p4b_spheres_indirect.png" align="middle" width="300px"/>
+                    <figcaption style="font-family:arial;"align="middle">Indirect Lighting</figcaption>
+                  </td>
+                  <td>
+                    <img src="images/p4b_global_spheres.png" align="middle" width="300px"/>
+                    <figcaption style="font-family:arial;"align="middle">Global Illumination</figcaption>
+                  </td>
+                </tr>
+              </table>
+            </div>
+
+          <h2 style="font-family:arial;">Varying <code>max_ray_depth</code></h2>
+            <p style="font-family:arial;">
+              Here is the bunny with various depths. At <code>depth=0</code> no rays are being cast, so all that is at
+              work is <code>zero_bounce_radiance</code>. At <code>depth=1</code>, we cast one ray, which is essentially
+              a call to <code>one_bounce_radiance</code>. As the depth increases, the brighter the image gets because of
+              the more rays we cast out and the more radiances we accumulate from the higher bounces.
+            </p>
+            <div>
+              <table style="width=100%;">
+                <tr>
+                  <td>
+                    <img src="images/p4c_bunny_m0.png" align="middle" width="500px"/>
+                    <figcaption style="font-family:arial;"align="middle">Depth 0</figcaption>
+                  </td>
+                  <td>
+                    <img src="images/p4c_bunny_m1.png" align="middle" width="500px"/>
+                    <figcaption style="font-family:arial;"align="middle">Depth 1</figcaption>
+                  </td>
+                </tr>
+                <br>
+                <tr>
+                  <td>
+                    <img src="images/p4c_bunny_m2.png" align="middle" width="500px"/>
+                    <figcaption style="font-family:arial;"align="middle">Depth 2</figcaption>
+                  </td>
+                  <td>
+                    <img src="images/p4c_bunny_m3.png" align="middle" width="500px"/>
+                    <figcaption style="font-family:arial;"align="middle">Depth 3</figcaption>
+                  </td>
+                </tr>
+              </table>
+            </div>
+            <figure style="text-align:center;">
+              <img src="images/p4c_bunny_m100.png" alt="Bunny depth=100" width="500px">
+              <figcaption style="font-family:arial;"align="middle">Depth 100</figcaption>
+            </figure>
+
+
+        <h2 style="font-family:arial;">Varying Sample-per-pixel Rates</h2>
+            <p style="font-family:arial;">
+              Here is CBspheres_lambertian with various samples-per-pixel rates using 4 light rays. With the Russian roulette
+              probability, images at low sample rates can fall victim to early termination and as a result we get a very noisy image.
+              As the samples increase, the noise reduces and we can render a clearer image.
+            </p>
+            <div>
+              <table style="width=100%;">
+                <tr>
+                  <td>
+                    <img src="images/p4d_spheres_1.png" align="middle" width="500px"/>
+                    <figcaption style="font-family:arial;"align="middle">1 sample-per-pixel</figcaption>
+                  </td>
+                  <td>
+                    <img src="images/p4d_spheres_2.png" align="middle" width="500px"/>
+                    <figcaption style="font-family:arial;"align="middle">2 samples-per-pixel</figcaption>
+                  </td>
+                </tr>
+                <br>
+                <tr>
+                  <td>
+                    <img src="images/p4d_spheres_4.png" align="middle" width="500px"/>
+                    <figcaption style="font-family:arial;"align="middle">4 samples-per-pixel</figcaption>
+                  </td>
+                  <td>
+                    <img src="images/p4d_spheres_8.png" align="middle" width="500px"/>
+                    <figcaption style="font-family:arial;"align="middle">8 samples-per-pixel</figcaption>
+                  </td>
+                </tr>
+                <br>
+                <tr>
+                  <td>
+                    <img src="images/p4d_spheres_16.png" align="middle" width="500px"/>
+                    <figcaption style="font-family:arial;"align="middle">16 samples-per-pixel</figcaption>
+                  </td>
+                  <td>
+                    <img src="images/p4d_spheres_64.png" align="middle" width="500px"/>
+                    <figcaption style="font-family:arial;"align="middle">64 samples-per-pixel</figcaption>
+                  </td>
+                </tr>
+              </table>
+            </div>
+            <figure style="text-align:center;">
+              <img src="images/p4d_spheres_1024.png" alt="Spheres 1024 samples" width="600px">
+              <figcaption style="font-family:arial;"align="middle">1024 samples-per-pixel</figcaption>
+            </figure>
+
+        <br>
+        <div class="backtotop">
+          <button class="button">
+              <a href="#Top" class="button">Back to Top</a>
+          </button>
+        </div>
+
+        <br>
+        <h1 id="Part5" style="font-family:arial; text-align:center;">Part 5: Adaptive Sampling</h1>
+            <p style="font-family:arial;">
+              Up to this point we have been using Monte Carlo pathtracing which can generate realistic images, but the results can
+              also display a lot of noise. Adaptive sampling determines if a pixel converges with low sampling rates, thus generating
+              images with less noise without uniformly taking a high number of samples per pixel.
+              <br>
+              <br>
+              To implement adaptive sampling, I had to modify my <code>raytrace_pixel</code> method. First, I kept track of the actual number
+              of samples taken and stored that value in the variable <code>n</code>. Then for every <code>samplesPerBatch</code> samples, since
+              it is expensive to check every single pixel for convergence, I calculate the mean and standard deviation (<code>sqrt(variance)</code>):
+            </p>
+            <figure style="text-align:center;">
+              <img src="images/p5_form.png" alt="Form" width="350px">
+            </figure>
+            <p style="font-family:arial;">
+              where <code>s1</code> and <code>s2</code> are the sum and squared sums, respectively, of every sample's illuminance
+              taken so far:
+            </p>
+            <figure style="text-align:center;">
+              <img src="images/p5_illum.png" alt="Illum" width="200px">
+            </figure>
+            <p style="font-family:arial;">
+              Once we have the mean and standard deviation, we can measure the pixel's convergence using the following formula:
+            </p>
+            <figure style="text-align:center;">
+              <img src="images/p5_conv.png" alt="Conv" width="200px">
+            </figure>
+            <p style="font-family:arial;">
+              If <code>I<=maxTolerance*mean</code> where <code>maxTolerance=0.05</code> by default, then we break out of the for loop and
+              stop sampling. Since there is the possibility of early termination, instead of dividing all the spectrums by <code>ns_aa</code>,
+              we divide by the actual number of samples we took, which I counted to be <code>n</code>.
+              <br>
+              <br>
+              Below is the sampling rate and the noise-free render of the bunny rendered at 2048 samples-per-pixel, 1 sample per light,
+              and max_ray_depth=5. Here, the sampling rate is higher where there is less illumination and more detail.
+            </p>
+            <div>
+              <table style="width=100%;">
+                <tr>
+                  <td>
+                    <img src="images/p5_bunny.png" align="middle" width="500px"/>
+                    <figcaption style="font-family:arial;"align="middle">Noise-free Render</figcaption>
+                  </td>
+                  <td>
+                    <img src="images/p5_bunny_rate.png" align="middle" width="500px"/>
+                    <figcaption style="font-family:arial;"align="middle">Sample Rate</figcaption>
+                  </td>
+                </tr>
+              </table>
+            </div>
+
+        <br>
+        <div class="backtotop">
+          <button class="button">
+              <a href="#Top" class="button">Back to Top</a>
+          </button>
+        </div>
+        <br>
+        <br>
+
+    </body>
+</html>

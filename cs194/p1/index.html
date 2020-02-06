@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+    <style>
+        body {
+          margin: 0px 125px;
+          background-color: rgb(240, 240, 240);
+        }
+    </style>
+    <body>
+
+        <h3 class="name" style="font-family:arial;">CS194-26: Image Manipulation and Computational Photography Fall 2018<br>Maddie Pahati, cs194-26-abz</h3>
+
+        <h1 class="proj" style="font-family:arial; text-align:center;">
+    Project 1: Images of the Russian Empire<br>Colorizing the Prokudin-Gorskii Photo Collection</h1>
+
+        <br>
+        <h2 style="font-family:arial;">Overview</h2>
+            <p style="font-family:arial;">
+              This project aims to create an RGB photo from the glass plate images in the Prokudin-Gorskii collection. Using the
+              digitized Prokudin-Gorskii images, we must separate the photo into the three color channels (blue, green, and red),
+              align the channels, and then stack them on top of each other to produce an RGB image.
+            </p>
+            <figure style="text-align:center;">
+              <img src="images/emir_blue.jpg" alt="Emir Blue Channel" style="width:300px;height:250px;">
+              <img src="images/emir_green.jpg" alt="Emir Green Channel" style="width:300px;height:250px;">
+              <img src="images/emir_red.jpg" alt="Emir Green Channel" style="width:300px;height:250px;">
+              <figcaption style="font-family:arial;">Blue Channel&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;Green Channel&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;Red Channel</figcaption>
+            </figure>
+            <figure style="text-align:center;">
+              <img src="images/emir_not_aligned.jpg" alt="Emir Not Aligned" style="width:300px;height:250px;">
+              <img src="images/emir_wrt_g.jpg" alt="Emir wrt Green" style="width:300px;height:250px;">
+              <figcaption style="font-family:arial;">Emir: Not Aligned&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;Emir: Aligned</figcaption>
+            </figure>
+
+        <h2 style="font-family:arial;">Single-Scale Implementation</h2>
+            <p style="font-family:arial;">
+              I first began this project by implementing a single-scale version. This naive approach takes the red and green channels and aligns against
+              the blue channel by exhaustively shifting the RG channels over a window of [-15, 15] pixels while keeping the blue channel static.
+              The best displacement is calculated such that the SSD (Sum of Squared Differences) distance is minimized. Aligning the red and green
+              channels against the blue channel is the default alignment in my implemention, but one can also specify to align against the green
+              or the red channel in the command line as well.
+              <br>
+              <br>
+              I ran into trouble aligning the images and discovered the borders had hurt my results. I first tried taking
+              the SSD over the entire image and then over the middle third of the image, but still it wouldn't work. So I then
+              decided to compute the metric over a shorter window by dividing the image into a 3x3 grid and then computing the
+              SSD over the center rectangle in the 3x3 grid. This worked well with the smaller jpg images but took much longer
+              with the bigger tif files.
+            </p>
+
+        <h2 style="font-family:arial;">Results</h2>
+            <p style="text-align:center;">
+              <figure style="text-align:center;">
+                <img src="images/cathedral.jpg" alt="Cathedral" style="width:400px;height:350px;">
+                <img src="images/monastery.jpg" alt="Monastery" style="width:400px;height:350px;">
+                <figcaption style="font-family:arial;">green [2, 5] red [3, 12]&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;green [2, -3] red [2, 3]</figcaption>
+              </figure>
+              <figure style="text-align:center;">
+                <img src="images/nativity.jpg" alt="Nativity" style="width:400px;height:350px;">
+                <img src="images/settlers.jpg" alt="Settlers" style="width:400px;height:350px;">
+                <figcaption style="font-family:arial;">green [1, 3] red [0, 8]&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;green [0, 7] red [-1, 15]</figcaption>
+              </figure>
+            </p>
+
+        <h2 style="font-family:arial;">Image Pyramid</h2>
+            <p style="font-family:arial;">
+              To speed up the search process, I used an image pyramid. I first started with the original full-scale image
+              then recursively scaled it down by 1/2 until the image was smaller than 200x200px. At this point, the image is small
+              enough to perform a naive alignment and calculate the displacement vector. This displacement vector then acts as
+              the starting point for the next level resolution where another search is performed over a [-15, 15] window. This
+              process repeats through the levels until it reaches the original image resolution, and we have a final updated
+              displacement vector.
+              <br>
+              <br>
+              I encountered a problem here where the images were only slightly off for both the tif and jpg images. I troubleshooted
+              this error by adding print statements to print out the image shape and the displacement vector at each level in
+              the recursion. The problem was that the algorithm stopped at the level right before the full-scale image. In other words,
+              I found the displacement for all the other levels except for the original image resolution. It was a small error in my
+              recursive function that I fixed, and after that was solved I was able to colorize all the example photos successfully.
+              <br>
+              <br>
+              Larger tif images were still taking quite a while so I shortened the window after getting the smallest resolution
+              displacement to a [-1,1] px window which greatly improved computational time while still maintaining proper alignment.
+            </p>
+
+        <h2 style="font-family:arial;">Results</h2>
+            <p style="text-align:center;">
+              <figure style="text-align:center;">
+                <img src="images/harvesters.jpg" alt="Harvesters" style="width:400px;height:350px;">
+                <img src="images/icon.jpg" alt="Icon" style="width:400px;height:350px;">
+                <figcaption style="font-family:arial;">green [2, 5] red [3, 12]&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;green [2, -3] red [2, 3]</figcaption>
+              </figure>
+              <figure style="text-align:center;">
+                <img src="images/lady.jpg" alt="Lady" style="width:400px;height:350px;">
+                <img src="images/self_portrait.jpg" alt="Self-Portrait" style="width:400px;height:350px;">
+                <figcaption style="font-family:arial;">green [8, 53] red [11, 114]&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;green [29, 78] red [37, 175]</figcaption>
+              </figure>
+              <figure style="text-align:center;">
+                <img src="images/three_generations.jpg" alt="Three Generations" style="width:400px;height:350px;">
+                <img src="images/train.jpg" alt="Train" style="width:400px;height:350px;">
+                <figcaption style="font-family:arial;">green [14, 51] red [11, 110]&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;green [7, 43] red [33, 86]</figcaption>
+              </figure>
+              <figure style="text-align:center;">
+                <img src="images/turkmen.jpg" alt="Turkmen" style="width:400px;height:350px;">
+                <img src="images/village.jpg" alt="Village" style="width:400px;height:350px;">
+                <figcaption style="font-family:arial;">green [22, 56] red [29, 117]&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;green [12, 64] red [22, 137]</figcaption>
+              </figure>
+            </p>
+
+        <h2 style="font-family:arial;">Challenges with emir.tif</h2>
+            <p style="font-family:arial;">
+              With Emir, the red channel did not match correctly when aligning against the blue channel and similarly with
+              the blue channel against the red. This is because Emir's robe has very high saturated blues and low saturated reds
+              so that when calculating the SSD, the closer the two channels matched, the larger the SSD distance actually was.
+              SSD assumes that if the blue channel is high in intensity then the other two channels will also be high in intensity
+              which is not the case here. The solution to this was to align with respect to the green channel.
+            </p>
+            <figure style="text-align:center;">
+              <img src="images/emir_wrt_b.jpg" alt="Emir wrt Blue" style="width:400px;height:350px;">
+              <img src="images/emir_wrt_r.jpg" alt="Emir wrt Red" style="width:400px;height:350px;">
+              <figcaption style="font-family:arial;">green [24, 48] red [511, 511]&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;green [-17, -57] blue [385, 159]</figcaption>
+            </figure>
+            <figure style="text-align:center;">
+              <img src="images/emir_wrt_g.jpg" alt="Emir wrt Green" style="width:400px;height:350px;">
+              <figcaption style="font-family:arial;">red [17, 58] blue [-24, -48]</figcaption>
+            </figure>
+
+        <h2 style="font-family:arial;">More Examples from the Prokudin-Gorskii Collection</h2>
+            <p style="font-family:arial;">Glassplate images provided by the Libary of Congress at
+                <a href="http://www.loc.gov/pictures/search/?st=grid&co=prok">http://www.loc.gov/pictures/search/?st=grid&co=prok</a>
+                .
+            </p>
+            <figure style="text-align:center;">
+              <img src="images/flowers_wrt_g.jpg" alt="Flowers wrt Green" style="width:400px;height:350px;">
+              <img src="images/railroad_wrt_g.jpg" alt="Railroad wrt Green" style="width:400px;height:350px;">
+              <figcaption style="font-family:arial;">red [-19, 47] blue [5, -49]&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;red [1, 84] blue [-4, -33]</figcaption>
+            </figure>
+            <figure style="text-align:center;">
+              <img src="images/room_wrt_g.jpg" alt="Room wrt Green" style="width:400px;height:350px;">
+              <img src="images/ship_wrt_b.jpg" alt="Ship wrt Blue" style="width:400px;height:350px;">
+              <figcaption style="font-family:arial;">red [5, 74] blue [-19, -79]&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;red [42, 92] blue [-40, -42]</figcaption>
+            </figure>
+
+    </body>
+</html>

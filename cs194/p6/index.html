@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html>
+    <style>
+        body {
+          margin: 0px 125px;
+          background-color: rgb(240, 240, 240);
+        }
+        div {
+          text-align: center;
+        }
+        button {
+          background-color: #008080; /* teal */
+          border: none;
+          color: white;
+          padding: 16px 32px;
+          width: 175px;
+          text-align: center;
+          border-radius: 4px;
+          font-size: 16px;
+          margin: 4px 2px;
+          opacity: 0.6;
+          transition: 0.3s;
+          display: inline-block;
+          text-decoration: none;
+          cursor: pointer;
+          position:
+        }
+        button:hover {opacity: 1}
+        .backtotop {text-align: right;}
+        a {
+          text-decoration: none;
+          color: white;
+          display: block;
+        }
+        .link {color: blue}
+
+    </style>
+    <body>
+        <a name="top"></a>
+        <h3 class="name" style="font-family:arial;">CS194-26: Image Manipulation and Computational Photography Fall 2018<br>Maddie Pahati, cs194-26-abz</h3>
+
+        <h1 class="proj" style="font-family:arial; text-align:center;">Project 6: [Auto]Stitching Photo Mosaics</h1>
+
+        <div>
+          <button class="button">
+              <a href="#Part1" class="button">Part 1</a>
+          </button>
+          <button class="button">
+              <a href="#Part2" class="button">Part 2</a>
+          </button>
+        </div>
+
+        <br>
+        <h1 id="Part1" style="font-family:arial;text-align:center;">Part 1: Image Warping and Mosaicing</h1>
+
+        <br>
+        <h2 style="font-family:arial;">Overview</h2>
+            <p style="font-family:arial;">
+              For this project, we calculated homographies after defining correspondences between two photographs with projective
+              (perspective) transformations, meaning the camera didn't translate between taking the photos. Using the
+              computed homographies, we can then "rectify" an image and create image mosaics.
+            </p>
+
+        <br>
+        <h2 style="font-family:arial;">Shooting and Digitizing Pictures</h2>
+            <p style="font-family:arial;">
+              The photos I chose to create a mosaic were taken prior to this class during my trips to Barcelona in 2016 and Seattle/Canada this past
+              August, and they happened to have a lot of overlap!
+            </p>
+            <figure style="text-align:center;">
+              <img src="images/spain1.jpg" alt="Spain1" style="width:500px;height:333px;">
+              <img src="images/spain2.jpg" alt="Spain2" style="width:500px;height:333px;">
+              <figcaption style="font-family:arial;">Barcelona, Spain</figcaption>
+            </figure>
+            <figure style="text-align:center;">
+              <img src="images/canada1.jpg" alt="Canada1" style="width:500px;height:333px;">
+              <img src="images/canada2.jpg" alt="Canada2" style="width:500px;height:333px;">
+              <figcaption style="font-family:arial;">White Rock, Canada</figcaption>
+            </figure>
+            <figure style="text-align:center;">
+              <img src="images/stairs1.jpg" alt="Stairs1" style="width:281px;height:500px;">
+              <img src="images/stairs2.jpg" alt="Stairs2" style="width:281px;height:500px;">
+              <figcaption style="font-family:arial;">Freeway Park, Seattle</figcaption>
+            </figure>
+
+        <br>
+        <h2 style="font-family:arial;">Recover Homographies</h2>
+            <p style="font-family:arial;">
+              In order to warp our images, we need to recover the homography matrix that provides the transformation between the pair
+              of images. I constructed a matrix of the following form, where (xi,yi) and (xi',yi') are pairs of corresponding points
+              of the two images. We then solve for the 8 unknowns and append a 1 to the end since the lower right corner is the scaling
+              factor. This gives us the 3x3 homography matrix, which we use in the following sections.
+            </p>
+            <figure style="text-align:center;">
+              <img src="images/homography_mat.jpg" alt="Homography" style="width:600px;height:425px;">
+            </figure>
+
+        <br>
+        <h2 style="font-family:arial;">Warping Images and Rectification</h2>
+            <p style="font-family:arial;">
+              Now that we have the homography matrix, we can warp one image to the perspective of another. My warp function is modified
+              from the warp function I implemented in Project 4 where I again used inverse warping.
+              <br>
+              <br>
+              First, I started small to ensure that I have computed the correct homography matrix and implemented the right warp function. I tested
+              photos where the objects were taken at a perspective, and then applied my warp function so that the plane is now frontal-planar
+              (the image is flattened as if staring straight-on).
+
+            </p>
+            <figure style="text-align:center;border:5px solid darkgray">
+              <img src="images/marvel.jpg" alt="Marvel" style="width:1014px;height:367px;">
+              <figcaption style="font-family:arial;">Marvel Exhibit - MoPOP, Seattle</figcaption>
+            </figure>
+            <figure style="text-align:center;border:5px solid darkgray">
+              <img src="images/mopop.jpg" alt="Mopop" style="width:1000px;height:361px;">
+              <figcaption style="font-family:arial;">Science Fiction Exhibit - MoPOP, Seattle</figcaption>
+            </figure>
+            <figure style="text-align:center;border:5px solid darkgray">
+              <img src="images/rp1.jpg" alt="RP1" style="width:1000px;height:624px;">
+              <figcaption style="font-family:arial;">Ready Player One</figcaption>
+            </figure>
+
+        <br>
+        <h2 style="font-family:arial;">Blending Images into a Mosaic</h2>
+            <p style="font-family:arial;">
+              Here I warped the left image to the perspective of the right image, aligned the warped left image result with the right
+              image using the offset computed when warping the left image, and then blended them together by taking the element-wise maximum
+              using np.maximum.
+            </p>
+            <figure style="text-align:center;border:5px solid darkgray">
+              <img src="images/spain_manual.jpg" alt="Spain Manual" style="width:1014px;height:746px;">
+              <figcaption style="font-family:arial;">Barcelona, Spain</figcaption>
+            </figure>
+            <figure style="text-align:center;border:5px solid darkgray">
+              <img src="images/canada_manual.jpg" alt="Canada Manual" style="width:1014px;height:745px;">
+              <figcaption style="font-family:arial;">White Rock, Canada</figcaption>
+            </figure>
+            <figure style="text-align:center;border:5px solid darkgray">
+              <img src="images/stairs_manual.jpg" alt="Stairs Manual" style="width:600px;height:823px;">
+              <figcaption style="font-family:arial;">Freeway Park, Seattle</figcaption>
+            </figure>
+
+        <br>
+        <div class="backtotop">
+          <button class="button">
+              <a href="#Top" class="button">Back to Top</a>
+          </button>
+        </div>
+
+        <br>
+        <h1 id="Part2" style="font-family:arial; text-align:center;">Part 2: Feature Matching for Autostitching</h1>
+        <br>
+        <h2 style="font-family:arial;">Overview</h2>
+            <p style="font-family:arial;">
+              The second part of this project aimed to automatically stitch two photos together to create a mosaic by implementing
+              the steps laid out in the research paper,
+              <a href="https://inst.eecs.berkeley.edu/~cs194-26/fa18/Papers/MOPS.pdf" class="link">“Multi-Image Matching using Multi-Scale Oriented Patches” by Brown et al.</a>
+            </p>
+
+        <br>
+        <h2 style="font-family:arial;">Detecting Corner Points</h2>
+            <p style="font-family:arial;">
+              The first step was to detect corner features, which we found by using the Harris Point Detector in the provided starter code.
+            </p>
+            <figure style="text-align:center;border:5px solid darkgray">
+              <img src="images/canada_harris.jpg" alt="Canada Harris Points" style="width:1014px;height:352px;">
+            </figure>
+
+        <br>
+        <h2 style="font-family:arial;">Implementing Adaptive Non-Maximal Suppression</h2>
+            <p style="font-family:arial;">
+              The Harris Point Detector outputs way too many points, so next we need to reduce these points such that they are uniformly
+              distributed across the image. We can do this by implementing Adaptive Non-Maximal Suppression, which selects points that
+              have a large distance between itself and its nearest neighbor with a high h value. We use the following formula:
+            </p>
+            <div>
+              <figure style="text-align:center;border:5px dotted darkgray">
+                <img src="images/anms_formula.jpg" alt="ANMS Formula" style="width:500px;height:53px;">
+              </figure>
+            </div>
+            <p style="font-family:arial;">
+              where xi is the current point we're looking at and xj is one of the other points. If the h value of xi is less than xj's h value multiplied
+              by a constant c, which is defined to be 0.9, then we compute the SSD between xi and xj and record their distance. After finding the
+              distance between xi and all other xj's that satisfy the constraint, we then find the minimum distance and map that to xi.
+              Finally, we select the top 300 points with the largest distances.
+            </p>
+            <figure style="text-align:center;border:5px solid darkgray">
+              <img src="images/canada_anms.jpg" alt="Canada ANMS" style="width:1014px;height:352px;">
+              <img src="images/canada_anms_pts.jpg" alt="Canada ANMS Points" style="width:1014px;height:352px;">
+            </figure>
+
+        <br>
+        <h2 style="font-family:arial;">Feature Descriptor</h2>
+            <p style="font-family:arial;">
+              Now we must extract a feature descriptor for each feature point in order to match it with a point in another image.
+              I did this by taking a sample patch of 40x40 pixels around each point and normalizing the patch by subtracting the mean
+              then dividing by the standard deviation. I then resized the sample patch to 8x8 pixels using skimage.transform.resize
+              and mapped each patch to the point in a dictionary for easy access.
+              <br>
+              <br>
+              Here are the 8x8 patches for two randomly selected points:
+            </p>
+            <figure style="text-align:center;border:5px solid darkgray">
+              <img src="images/canada_descriptor.jpg" alt="Canada Descriptor" style="width:800px;height:659px;">
+            </figure>
+
+        <br>
+        <h2 style="font-family:arial;">Feature Matching</h2>
+            <p style="font-family:arial;">
+              To match the feature descriptors, I iterated through each point, p1, in the first image and computed the SSD between
+              p1's patch and every patch in the second image, mapping the distance to point p2 in another dictionary. I sorted the
+              distance from least to greatest, and took the first and second nearest neighbors, NN1 and NN2. If NN1/NN2 is less than
+              a threshold (I chose the threshold to be 0.65), then it's a match!
+            </p>
+            <figure style="text-align:center;border:5px solid darkgray">
+              <img src="images/canada_matching.jpg" alt="Canada Matching" style="width:1014px;height:352px;">
+              <img src="images/canada_matching_pts.jpg" alt="Canada Matching Points" style="width:1014px;height:352px;">
+            </figure>
+            <p style="font-family:arial;">
+              However, not all points matched correctly. For example, points 3, 10, 18, and 21 are incorrect matches.
+              Now we must figure out how to identify and subsequently exclude these incorrect pairs.
+            </p>
+
+        <br>
+        <h2 style="font-family:arial;">RANSAC (RAndom SAmple Consensus)</h2>
+            <p style="font-family:arial;">
+              The solution is to use the RANSAC in order to find and exclude the mismatched points. In 10,000 iterations, I randomly
+              chose 4 pairs of matched features and computed a homography for these 8 points. Then I passed all of image1's points through
+              the homography matrix and computed the SSD between the image1's warped points and image2's points. Using dictionaries, I mapped
+              the pairs of points to the distance and only kept the pairs where the distance is less than 20. The number of inliers is the
+              length of the dictionary. At the end of 10,000 iterations, I end up with a set of points that
+              is considered to be the most inliers.
+            </p>
+            <figure style="text-align:center;border:5px solid darkgray">
+              <img src="images/canada_ransac_pts.jpg" alt="Canada RANSAC Points" style="width:1014px;height:352px;">
+            </figure>
+
+        <br>
+        <h2 style="font-family:arial;">Mosaics</h2>
+            <p style="font-family:arial;">
+              Finally, now that we have a set of correspondences from two images, I sent the two sets of points through the code I implemented in Part 1.
+              These are the results:
+            </p>
+            <figure style="text-align:center;border:5px solid darkgray">
+              <img src="images/spain_mosaic_manual.jpg" alt="Spain Manual" style="width:1014px;height:453px;">
+              <figcaption style="font-family:arial;">Manually Stitched</figcaption>
+              <img src="images/spain_mosaic_official.jpg" alt="Spain Auto" style="width:1014px;height:449px;">
+              <figcaption style="font-family:arial;">Automatically Stitched</figcaption>
+              <img src="images/spain_cropped.jpg" alt="Spain Cropped" style="width:1014px;height:304px;">
+              <figcaption style="font-family:arial;">Cropped</figcaption>
+            </figure>
+            <figure style="text-align:center;border:5px solid darkgray">
+              <img src="images/canada_mosaic_manual.jpg" alt="Canada Manual" style="width:1014px;height:433px;">
+              <figcaption style="font-family:arial;">Manually Stitched</figcaption>
+              <img src="images/canada_mosaic_official.jpg" alt="Canada Auto" style="width:1014px;height:436px;">
+              <figcaption style="font-family:arial;">Automatically Stitched</figcaption>
+              <img src="images/canada_cropped.jpg" alt="Canada Cropped" style="width:1014px;height:387px;">
+              <figcaption style="font-family:arial;">Cropped</figcaption>
+            </figure>
+            <figure style="text-align:center;border:5px solid darkgray">
+              <img src="images/stairs_mosaic_manual.jpg" alt="Stairs Manual" style="width:400px;height:777px;">
+              <img src="images/stairs_mosaic_official.jpg" alt="Stairs Auto" style="width:413px;height:777px;">
+              <img src="images/stairs_cropped.jpg" alt="Stairs Cropped" style="width:290px;height:777px;">
+              <figcaption style="font-family:arial;">Manually Stitched&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;Automatically Stitched&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;Cropped</figcaption>
+            </figure>
+          <p style="font-family:arial;">
+            My manually vs. automatically stiched mosaics seemed to be about the same! Most likely because in the manual implementation, I chose 21
+            points that were uniformally distributed across the overlapping region. But it's great that I won't have
+            to meticulously choose 21 points to create a panorama now with automatic stitching!
+          </p>
+
+
+
+        <h2 style="font-family:arial;">Reflection</h2>
+            <p style="font-family:arial;">
+              I learned a lot through this project, which has taught me so much about homographies and altering perspectives. It was
+              also great to use what I have learned and coded in previous projects and apply them here. In Part 2, it was interesting
+              studying (and fun implementing) the steps that is needed to create a panorama image. Dictionaries were my friends in Part 2,
+              and I learned a lot more about Python dictionaries and discovered some fun indexing tricks you can do with them.
+              <br>
+              <br>
+              I had a bug that continued since Part 1 where my images wouldn't align correctly. The resulting mosaic would be off by less than 20 pixels
+              in either direction, and I could not for the life of me figure out what was wrong. That is, until I started plotting points using matplotlib.pyplot
+              at various locations in my code. I was able to effectively troubleshoot by plotting points, and I learned more about how to plot points using
+              matplotlib.
+              <br>
+              <br>
+              The coolest part for me was that I was able to take photos I've taken months or even years ago
+              and either warp the image so that the object is now frontal-planar or take two photos and create a panorama after-the-fact.
+            </p>
+
+        <br>
+        <div class="backtotop">
+          <button class="button">
+              <a href="#Top" class="button">Back to Top</a>
+          </button>
+        </div>
+        <br>
+        <br>
+
+    </body>
+</html>

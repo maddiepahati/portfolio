@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+    <style>
+        body {
+          margin: 0px 125px;
+          background-color: rgb(240, 240, 240);
+        }
+        div {
+          background-color: rgb(240, 240, 240);
+          width: 400px;
+          border: 5px dotted darkgrey;
+          padding: 10px;
+          margin: 25px;
+          font-family: arial;
+        }
+    </style>
+    <body>
+
+        <h3 class="name" style="font-family:arial;">CS194-26: Image Manipulation and Computational Photography Fall 2018<br>Maddie Pahati, cs194-26-abz</h3>
+
+        <h1 class="proj" style="font-family:arial; text-align:center;">Project 4: Face Morphing</h1>
+
+        <br>
+        <h2 style="font-family:arial;">Overview</h2>
+            <p style="font-family:arial;">
+                In this project, we were given multiple tasks related to morphing and averaging faces. The goal was to morph
+                one face into another, compute the average faces given a population of people, and then extrapolate from
+                that mean to create a caricature of myself. For the morph, I used the senior pictures of myself and my younger brother, Jerrick.
+            </p>
+        </h2>
+
+
+        <h2 style="font-family:arial;">Defining Correspondencies</h2>
+            <p style="font-family:arial;">
+                To get the smoothest transformation, we defined correspondencies between one face and another that maps
+                mouth to mouth, eyes to eyes, nose to nose, etc, keeping the ordering of coordinates consistent between
+                the two faces. In addition, the four corners were added to the list of points.
+                <br>
+                <br>
+                Next we compute the Delaunay triangulation at the midway shape, which is the average set of points between
+                face1's correspondencies and face2's correspondencies. The Delaunay triangulation maximizes the smallest angles
+                and was computed using scipy.spatial.Delaunay. We use the midway shape to ensure the triangulation
+                will be the same for both faces because it is possible to get different triangulations when running the Delaunay on two
+                separate images.
+            </p>
+            <figure style="text-align:center;">
+              <img src="images/triangulation_midway.jpg" alt="Tri Midway" style="width:700px;height:327px;">
+            </figure>
+          <br>
+
+        <h2 style="font-family:arial;">Computing the "Mid-way Face"</h2>
+            <p style="font-family:arial;">
+              Once we have gotten all the keypoints and triangulation, the next step was to compute a "mid-way face" before computing the
+              entire morph. Using the triangulation found in the previous part, I warped each face to that shape, and then averaged
+              out the colors.
+              <br>
+              <br>
+              To warp each face to the average shape, I computed the affine transformation between each source triangle and its corresponding
+              midway triangle. The affine transformation matrix was calculated using the following formula
+              with inspiration from this Stack Overflow
+              <a href="https://math.stackexchange.com/a/1092048">post</a>.
+              <br>
+              <br>
+              Given transformation matrix T, matrix A with the target triangle coords, and matrix X with the source triangle coords,
+            </p>
+              <figure style="text-align:center;">
+                <img src="images/original.jpg" alt="Eqn" style="width:400px;height:146px;">
+              </figure>
+            <p style="font-family:arial;">
+              Where (a1,a2), (b1,b2), (c1,c2) are points of the triangle in the target image (the average shape) and
+              (x1,x2), (y1,y2), (z1,z2) are points of the triangle in the source image, we can compute the transformation
+              matrix T by multiplying X by A inverse.
+            </p>
+              <figure style="text-align:center;">
+                <img src="images/transf.jpg" alt="New Eqn" style="width:400px;height:146px;">
+              </figure>
+            <p style="font-family:arial;">
+              The corresponding pixel location in the source image can then be computed by multiplying the target point by
+              the affine transformation matrix we just calculated.
+            </p>
+            <p style="font-family:arial;">
+              I used draw.polygon to find all the target points in each triangle, applied the transform to the corresponding
+              point in both source images, interpolated the value at the point, averaged the two values together and then copied the average
+              in the target image.
+
+            </p>
+            <figure style="text-align:center;">
+              <img src="images/midway.jpg" alt="Midway" style="width:700px;height:327px;">
+            </figure>
+
+        <br>
+        <h2 style="font-family:arial;">The Morph Sequence</h2>
+            <p style="font-family:arial;">
+              Here we produce a warp that transforms my face smoothly into my younger brother's face. I produced 45 frames where each frame is a morph of the two faces
+              but applied with a different weight from [0,1].
+            </p>
+            <figure style="text-align:center;">
+                <img src="images/morph_me_jer.gif" alt="Morph" style="width:250px;height:376px;">
+            </figure>
+            <p style="font-family:arial;">
+              As you can see, the hair and the chest area are not as smooth which is due to the low number of correspondencies in those areas. This can be
+              fixed by adding more keypoints.
+            </p>
+
+        <br>
+        <h2 style="font-family:arial;">The "Mean Face" of a Population</h2>
+            <p style="font-family:arial;">
+              Using the
+              <a href="http://www2.imm.dtu.dk/~aam/datasets/datasets.html">Danes</a>
+              dataset, I computed the average face shape for the men and the women, morphed each face to their respective average shape,
+              and the averaged all the images to get the "average" man and the "average" woman.
+            </p>
+            <figure style="text-align:center;">
+                <img src="images/mean_men.jpg" alt="Avg Man" style="width:1014px;height:512px;">
+                <img src="images/mean_women.jpg" alt="Avg Woman" style="width:1014px;height:514px;">
+            </figure>
+            <p style="font-family:arial;">
+                I then morphed my face to the geometry of the average smiling woman and vice versa.
+            </p>
+            <figure style="text-align:center;">
+                <img src="images/me_to_mean.jpg" alt="Me to Mean" style="width:1014px;height:271px;">
+                <img src="images/mean_to_me.jpg" alt="Mean to Me" style="width:1014px;height:281px;">
+            </figure>
+
+        <br>
+        <h2 style="font-family:arial;">Caricatures</h2>
+            <p style="font-family:arial;">
+              A caricature is an image where certain features are exaggerated. I created a caricature of myself by
+              extrapolating from the average smiling woman.
+            </p>
+            <figure style="text-align:center;">
+                <img src="images/caricatures.jpg" alt="Caricatures" style="width:800px;height:318px;">
+            </figure>
+            <p style="font-family:arial;">
+              My caricatures, especially when alpha=1.5, looks quite qnarly but it makes sense because my shape is rather
+              different than the average Danish woman.
+            </p>
+
+        <h2 style="font-family:arial;">Bells and Whistles</h2>
+        <h3 style="font-family:arial;">Make a Morph Based on a Theme</h3>
+            <p style="font-family:arial;">
+              I dug up all my old school pictures and made a morph of me throughout the years from kindergarten to my high
+              school graduation.
+            </p>
+            <iframe width="560" height="315" src="https://www.youtube.com/embed/RpR6uJda4Ao" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+
+    </body>
+</html>

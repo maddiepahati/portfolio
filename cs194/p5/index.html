@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+    <style>
+        body {
+          margin: 0px 125px;
+          background-color: rgb(240, 240, 240);
+        }
+        div {
+          background-color: rgb(240, 240, 240);
+          width: 400px;
+          border: 5px dotted darkgrey;
+          padding: 10px;
+          margin: 25px;
+          font-family: arial;
+        }
+    </style>
+    <body>
+
+        <h3 class="name" style="font-family:arial;">CS194-26: Image Manipulation and Computational Photography Fall 2018<br>Maddie Pahati, cs194-26-abz</h3>
+
+        <h1 class="proj" style="font-family:arial; text-align:center;">
+            Project 5: Lightfield Camera
+            <br>
+            Depth Refocusing and Aperture Adjustment with Light Field Data
+        </h1>
+
+        <br>
+        <h2 style="font-family:arial;">Overview</h2>
+            <p style="font-family:arial;">
+              In this project, we aimed to manipulate photos after they have been taken such as changing the focus and aperture
+              by means of shifting and averaging images using datasets from the
+              <a href="https://math.stackexchange.com/a/1092048">Stanford Light Field Archive</a>.
+              These datasets include 289 images of an object taken at different angles with little displacement which were
+              captured by 289 cameras constructed in a 17x17 grid.
+            </p>
+
+        <br>
+        <h2 style="font-family:arial;">Depth Refocusing</h2>
+            <p style="font-family:arial;">
+              By shifting all the other images with positional coordinates (u,v) to align to the center image at
+              position (8,8), we can refocus an image
+              at different depths. I calculated the proper shift amount using the following formula, where C is a
+              constant chosen with experimentation.
+            </p>
+            <p style="font-family:arial;text-align:center;">
+              <div style="text-align:center">
+                  shift_amt = C[(u,v) - (8,8)]
+              </div>
+            </p>
+            <p style="font-family:arial;">
+              Naively blending all the images together by simply averaging them together produces an image that
+              is sharper in the background where far-away objects are more in focus and blurrier in the foreground where
+              closer objects are not in focus. This is because objects farther away do not vary their position as significantly as
+              objects closer to the camera as the camera moves along the 17x17 grid.
+            </p>
+            <figure style="text-align:center;">
+              <img src="images/naive_lego.jpg" alt="Naive Lego" style="width:400px;height:400px;">
+              <img src="images/naive_tarot.jpg" alt="Naive Tarot" style="width:400px;height:400px;">
+              <figcaption style="font-family:arial;">Naively Blended Lego Knights&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;Naively Blending Tarot Cards and Crystal Ball</figcaption>
+            </figure>
+            <p style="font-family:arial;">
+              The following are the result of using different weights from an interval C[a:b] with a step size of 0.5 to refocus on
+              the image at different depths. A large positive C will focus on objects farther away from the camera, and a large
+              negative C will focus on objects closer to the camera.
+            </p>
+            <figure style="text-align:center;">
+                <a href="https://imgur.com/JiGfyyU"><img src="https://i.imgur.com/JiGfyyU.gif" title="source: imgur.com" style="width:400px;height:400px;"/></a>
+                <a href="https://imgur.com/9k3qisX"><img src="https://i.imgur.com/9k3qisX.gif" title="source: imgur.com" style="width:400px;height:400px;"/></a>
+                <figcaption style="font-family:arial;">C[-4:4]&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;C[-3.5:2]</figcaption>
+            </figure>
+          <br>
+
+        <h2 style="font-family:arial;">Aperture Adjustment</h2>
+            <p style="font-family:arial;">
+              Changing the aperture requires that we only include a select amount of images within a specified radius and then average
+              that subset of images together. A smaller aperture results from a small subset of images, and consequently, a larger aperture
+              results from a large subset.
+            </p>
+            <figure style="text-align:center;">
+              <img src="images/aperture.jpg" alt="Aperture" style="width:1000px;height:664px;">
+            </figure>
+            <p style="font-family:arial;">
+              As you can see with the two extremes, restricting the radius=0 produces just the center image of focus, which is the image at (8,8),
+              and increasing the radius to be 12 averages all of the images, which is equivalent to the naively blending images in the previous part.
+              <br>
+              <br>
+              The resulting gifs were created by increasing the radius from 0 to 12 in increments of 1.
+            </p>
+            <figure style="text-align:center;">
+              <a href="https://imgur.com/8c2m8f3"><img src="https://i.imgur.com/8c2m8f3.gif" title="source: imgur.com" style="width:400px;height:400px;"/></a>
+              <a href="https://imgur.com/qIuvkPn"><img src="https://i.imgur.com/qIuvkPn.gif" title="source: imgur.com" style="width:400px;height:400px;"/></a>
+            </figure>
+
+        <br>
+        <h2 style="font-family:arial;">Reflection</h2>
+            <p style="font-family:arial;">
+              This project was really fun to do! I learned a lot about lightfields and how images can be manipulated after-the-fact. There is just
+              so much depth to an image that the possibilities of what we can do seems endless!
+            </p>
+
+    </body>
+</html>

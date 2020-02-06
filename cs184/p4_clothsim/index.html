@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html>
+    <style>
+        body {
+          margin: 0px 125px;
+          background-color: rgb(240, 240, 240);
+          disply:inline-block;
+        }
+        div {
+          /* text-align: center; */
+          disply:inline-block;
+        }
+        code {
+          font-size: 15px;
+        }
+        button {
+          background-color: #008080; /* teal */
+          border: none;
+          color: white;
+          padding: 16px 32px;
+          width: 175px;
+          text-align: center;
+          border-radius: 4px;
+          font-size: 16px;
+          margin: 4px 2px;
+          opacity: 0.6;
+          transition: 0.3s;
+          display: inline-block;
+          text-decoration: none;
+          cursor: pointer;
+          position:
+        }
+        button:hover {opacity: 1}
+        .backtotop {text-align: right;}
+        a {
+          text-decoration: none;
+          color: white;
+          display: block;
+        }
+        .link {
+          color: blue;
+          display: inline;
+        }
+
+    </style>
+    <body>
+        <a name="top"></a>
+        <h3 class="name" style="font-family:arial;">CS184: Computer Graphics and Imaging, Spring 2019<br>Maddie Pahati, cs184-abo</h3>
+
+        <h1 class="proj" style="font-family:arial; text-align:center;">Project 4: Cloth Simulation</h1>
+
+        <div align="middle">
+          <button class="button">
+              <a href="#Part1" class="button">Part 1</a>
+          </button>
+          <button class="button">
+              <a href="#Part2" class="button">Part 2</a>
+          </button>
+          <button class="button">
+              <a href="#Part3" class="button">Part 3</a>
+          </button>
+          <button class="button">
+              <a href="#Part4" class="button">Part 4</a>
+          </button>
+          <button class="button">
+              <a href="#Part5" class="button">Part 5</a>
+          </button>
+        </div>
+
+        <br>
+        <h2 style="font-family:arial;">Overview</h2>
+            <p style="font-family:arial;">
+              In this project, we implemented a real-time cloth simulation built upon a system of mass and springs. The simulation
+              uses numerical integration, handles collisions with both itself and other objects, and utilizes various shaders to create
+              cool results.
+            </p>
+
+        <br>
+        <h1 id="Part1" style="font-family:arial;text-align:center;">Part 1: Mass and Springs</h1>
+            <p style="font-family:arial;">
+              We begin by building a grid of masses and springs. The cloth itself is divided into an evenly spaced grid of
+              dimension <code>num_width_points</code> and <code>num_height_points</code>. Each index contains a
+              <code>PointMass</code> that holds the position (scaled relative to the <code>width</code> and <code>height</code>
+              of the cloth) and a boolean value <code>pinned</code>. The <code>pinned</code> value is set to <code>True</code> if
+              it is in the <code>pinned</code> vector and <code>False</code> otherwise.
+              <br>
+              <br>
+              With the masses initialized, we now create the springs that connect these point masses together. Each <code>Spring</code>
+              takes in two pointers to two point masses and an enum <code>spring_type</code> that represents one of the
+              three types of constraints we will be implementing: <code>STRUCTURAL</code>, <code>SHEARING</code>, or <code>BENDING</code>.
+              <br>
+              <br>
+              <code>STRUCTURAL</code> constraints connect a point mass to its left neighbor and to its neighbor directly above it.
+              <code>SHEARING</code> constraints connect a point mass to its diagonally upper left neighbor and its diagonally upper
+              right neighbor. <code>BENDING</code> contraints have a slightly similar implementation to <code>STRUCTURAL</code> constraints,
+              except <code>BENDING</code> constraints connect a point mass to the point mass two to the left and to the point mass two
+              above. We also make sure to account for edge cases to avoid any out of bounds indexing and segfaults.
+              <br>
+              <br>
+              Once correctly implemented, we can now see a flat cloth wireframe:
+            </p>
+            <figure style="text-align:center;">
+              <img src="images/p1_angle.png" alt="Cloth Angle" width="500px">
+            </figure>
+            <p style="font-family:arial;">
+              Here is what the wireframe looks like with different kinds of constraints applied to it:
+            </p>
+            <div align="middle">
+              <table style="width=100%;">
+                <tr>
+                  <td>
+                    <img src="images/p1_noShear.png" align="middle" width="500px"/>
+                    <figcaption style="font-family:arial;"align="middle">Without Shearing Constraints</figcaption>
+                  </td>
+                  <td>
+                    <img src="images/p1_shear.png" align="middle" width="500px"/>
+                    <figcaption style="font-family:arial;"align="middle">Only Shearing Constraints</figcaption>
+                  </td>
+                </tr>
+              </table>
+            </div>
+            <figure style="text-align:center;">
+              <img src="images/p1_all.png" alt="All Constraints" width="500px">
+              <figcaption style="font-family:arial;"align="middle">With All Constraints</figcaption>
+            </figure>
+
+        <br>
+        <div class="backtotop">
+          <button class="button">
+              <a href="#Top" class="button">Back to Top</a>
+          </button>
+        </div>
+
+        <br>
+        <h1 id="Part2" style="font-family:arial; text-align:center;">Part 2: Simulation via Numerical Integration</h1>
+        <p style="font-family:arial;">
+          Now we can implement how each point mass reacts from one time step to another by using physical equations to apply external
+          forces (like gravity) which affect the cloth in its entirety and spring correction forces which affect the spring constraints
+          to keep the cloth together. First, we use Newton's Second Law when we compute the total external force based on
+          <code>external_accelerations</code> and <code>mass</code>. We then add this total to the point mass's <code>forces</code>
+          attribute which should have been reset at the start of the function to avoid accumulating extra forces. Next we apply the
+          spring constraint forces using Hooke's Law, but we do so only if the spring type constraint is enabled. Bending constraints are
+          weaker then structural and shearing constraints so to reflect this we multiply the spring constant <code>ks</code> of
+          <code>BENDING</code> by <code>0.2</code>. We add this force to one point mass's <code>forces</code> and the opposite force to
+          the other's <code>forces</code>.
+          <br>
+          <br>
+          We then use Verlet Integration to approximate where the point mass will be located in the current time step given the point
+          mass's <code>position</code>, <code>last_position</code>, the current total acceleration, <code>damping</code>, and the
+          timestep <code>delta_t</code>.
+          <br>
+          <br>
+          Lastly, we constrain the position of the point masses so that the springs do not have weird behavior such as stretching too much.
+          This is done by making sure the spring's length does not extend passed 10% more than its <code>rest_length</code>. If it does, we
+          compute the correction vector. If one point mass is pinned and the other is not, we add the correction vector to just the unpinned
+          point mass. Otherwise, if neither of the point masses are pinned, we add half the correction vector to one point mass and the opposite
+          half correction vector to the other.
+        </p>
+            <figure style="text-align:center;">
+              <img src="images/p2a.png" alt="Default" width="500px">
+              <figcaption style="font-family:arial;"align="middle">
+                <code>ks</code>: 5000 N/m
+                <br>
+                <code>density</code>: 15 g/cm<sup>2</sup>
+                <br>
+                <code>damping</code>: 20%
+              </figcaption>
+            </figure>
+        <h2 style="font-family:arial;">ks</h2>
+        <p style="font-family:arial;">
+          <code>ks</code> is the spring constant, so a low <code>ks</code> means the springs are looser and thus we get a loosely draped cloth.
+          As you increase <code>ks</code>, the springs tighten and the cloth holds together better, so we get less of a parabolic shape at the
+          top of the cloth between the two pinned point masses.
+        </p>
+            <div align="middle">
+              <table style="width=100%;">
+                <tr>
+                  <td>
+                    <img src="images/p2a_ks100.png" align="middle" width="500px"/>
+                    <figcaption style="font-family:arial;"align="middle"><code>ks</code>: 100 N/m</figcaption>
+                  </td>
+                  <td>
+                    <img src="images/p2a_ks50000.png" align="middle" width="500px"/>
+                    <figcaption style="font-family:arial;"align="middle"><code>ks</code>: 50000 N/m</figcaption>
+                  </td>
+                </tr>
+              </table>
+            </div>
+        <h2 style="font-family:arial;">Density</h2>
+        <p style="font-family:arial;">
+          A low <code>density</code> means the cloth is really thin and not much stretching occurs when the cloth falls. A high <code>density</code>
+          results in a thicker cloth, so the cloth will sag more in the center.
+        </p>
+            <div align="middle">
+              <table style="width=100%;">
+                <tr>
+                  <td>
+                    <img src="images/p2a_dens1.png" align="middle" width="500px"/>
+                    <figcaption style="font-family:arial;"align="middle"><code>density</code>: 1 g/cm<sup>2</sup></figcaption>
+                  </td>
+                  <td>
+                    <img src="images/p2a_dens50.png" align="middle" width="500px"/>
+                    <figcaption style="font-family:arial;"align="middle"><code>density</code>: 50 g/cm<sup>2</sup></figcaption>
+                  </td>
+                </tr>
+              </table>
+            </div>
+        <h2 style="font-family:arial;">Damping</h2>
+        <p style="font-family:arial;">
+          <code>damping</code> helps simulate the loss of energy so no <code>damping</code> (0%) results in the cloth swinging down and then
+          continuing to swing up after you expect it to stop falling. Complete <code>damping</code> (100%) results in a very slow simulation
+          since the cloth loses more and more of its energy at each time step.
+        </p>
+            <div align="middle">
+              <table style="width=100%;">
+                <tr>
+                  <td>
+                    <img src="images/p2a_d0.png" align="middle" width="500px"/>
+                    <figcaption style="font-family:arial;"align="middle"><code>damping</code>: 0%</figcaption>
+                  </td>
+                  <td>
+                    <img src="images/p2a_d1.png" align="middle" width="500px"/>
+                    <figcaption style="font-family:arial;"align="middle"><code>damping</code>: 100%</figcaption>
+                  </td>
+                </tr>
+              </table>
+            </div>
+        <p style="font-family:arial;">
+          The following is an image of the cloth from <code>scene/pinned4.json</code> in its final resting state. I tweaked the default
+          parameters to the ones listed below.
+        </p>
+            <figure style="text-align:center;">
+              <img src="images/p2b.png" alt="Default" width="500px">
+              <figcaption style="font-family:arial;"align="middle">
+                <code>ks</code>: 7500 N/m
+                <br>
+                <code>density</code>: 50 g/cm<sup>2</sup>
+                <br>
+                <code>damping</code>: 20%
+              </figcaption>
+            </figure>
+
+        <br>
+        <div class="backtotop">
+          <button class="button">
+              <a href="#Top" class="button">Back to Top</a>
+          </button>
+        </div>
+
+
+        <br>
+        <h1 id="Part3" style="font-family:arial; text-align:center;">Part 3: Handling Collisions with Other Objects</h1>
+            <p style="font-family:arial;">
+              Since we have successfully created a simulation of a cloth falling, we can add more advanced features like seeing how
+              a cloth reacts when it hits another object such as a sphere and a plane.
+            </p>
+
+        <h2 style="font-family:arial;">Handling Collisions with Spheres</h2>
+            <p style="font-family:arial;">
+              Our approach to handling collisions is to see if the point mass intersects the sphere, i.e. the point mass's <code>position</code> is
+              located inside the sphere. If the distance between the point mass's <code>position</code> and the sphere's <code>origin</code> is less than the radius
+              of the sphere, we have a valid intersection. Then the point mass is "bumped" up to the surface of the sphere, which is done
+              by calculating the tangent point, meaning the closest point on the sphere to the point mass's current <code>position</code> and offsetting
+              by sphere's <code>origin</code>. We then calculate the correction vector (the difference between the point mass's <code>last_position</code> and the
+              tangent point), scale this by <code>(1 - friction)</code>, and add this to the point mass's <code>last_position</code>. Finally, we make
+              sure to update the <code>simulate</code> function such that for each point mass, we test if it collides with any possible
+              primitives stored in the <code>collision_objects</code> vector.
+            </p>
+            <figure style="text-align:center;">
+              <img src="images/p3a_500.png" alt="500" width="400px">
+              <figcaption style="font-family:arial;"align="middle"><code>ks</code>: 500 N/m</figcaption>
+            </figure>
+            <div align="middle">
+              <table style="width=100%;">
+                <tr>
+                  <td>
+                    <img src="images/p3a_5000.png" align="middle" width="400px"/>
+                    <figcaption style="font-family:arial;"align="middle"><code>ks</code>: 5000 N/m</figcaption>
+                  </td>
+                  <td>
+                    <img src="images/p3a_50000.png" align="middle" width="400px"/>
+                    <figcaption style="font-family:arial;"align="middle"><code>ks</code>: 50000 N/m</figcaption>
+                  </td>
+                </tr>
+              </table>
+            </div>
+            <p style="font-family:arial;">
+              Similar to the previous part, we note that the smaller <code>ks</code> is, the looser the springs are and the more the cloth will
+              stoop over the sphere. As <code>ks</code> increases, and we can see this when <code>ks</code> equals 50000 N/m, the tigher the
+              springs get and the stiffer the cloth becomes. Due to the increased stiffness, there are less folds when the cloth is in its
+              resting state.
+            </p>
+
+            <h2 style="font-family:arial;">Handling Collisions with Planes</h2>
+                <p style="font-family:arial;">
+                  Another object we can have our cloth react with is a plane. Our approach to handling collisions with planes is quite similar to
+                  handling collisions with spheres. Likewise with sphere collision, we test to see if the point mass intersects with the plane, i.e.
+                  the point mass's position is below the plane. If the dot product between the plane's normal and the direction from the plane's
+                  point to the point mass's current position is less than zero, we have a valid intersection. Then we "bump" the point mass to the
+                  surface of plane after calculating the tangent point and computing the correction vector. Similarly, we scale this correction vector by
+                  <code>(1 - friction)</code>, but we also offset by <code>SURFACE_OFFSET</code> so that the cloth does not look like it is
+                  intersecting with the plane's surface in the GUI.
+                  <br>
+                  <br>
+                  Here is the cloth in its final resting state on the plane in both wireframe and diffuse shader:
+                </p>
+                <div align="middle">
+                  <table style="width=100%;">
+                    <tr>
+                      <td>
+                        <img src="images/p3b1_wire.png" alt="Wireframe" width="400px">
+                      </td>
+                      <td>
+                          <img src="images/p3b2_diffuse.png" alt="Plane Diffuse" width="400px">
+                      </td>
+                    </tr>
+                  </table>
+                </div>
+                <p style="font-family:arial;">
+                  Here is also the same cloth using the mirror shader which I thought created a very fun result!
+                </p>
+                <figure style="text-align:center;">
+                  <img src="images/p3b5_mirror.png" alt="Mirror" width="500px">
+                </figure>
+
+        <br>
+        <div class="backtotop">
+          <button class="button">
+              <a href="#Top" class="button">Back to Top</a>
+          </button>
+        </div>
+
+        <br>
+        <h1 id="Part4" style="font-family:arial; text-align:center;">Part 4: Handling Self-Collisions</h1>
+            <p style="font-family:arial;">
+              The next step in handling collisions with objects is to handle collisions with itself. The naive solution loops through each
+              pair of points which is very costly, but we can speed up computations using spatial hashing, which delegate point masses into
+              buckets in 3D bounding boxes. Now instead of computing collisions with every other possible point mass, we just test against
+              the other point masses in the same bounding box.
+              <br>
+              <br>
+              To make sure we separate just enough point masses into the respective bounding box, we implement a hash function. First, we
+              compute the dimensions of the bounding box, <code>w*h*t</code> where <code>w = 3 * width / num_width_points</code>,
+              <code>h = 3 * height / num_height_points</code>, and <code>t = max(w, h)</code>. Then we truncate the x-, y-, and z- coordinates
+              of the point mass's position, which I did by flooring the quotient between the coordinate with its respective axis length and
+              then multiplying again the axis. Flooring the quotient determines the multiplicative factor and multiplying by the axis places
+              the point mass in the correct bouding box location. I then took the weighted sum where the weights are powers of a prime. I
+              arbitrarily chose 3 as my prime, which worked well with my implementation. Using the hashing function, we can then build the
+              spatial map and fill it with the each point mass according to its computed hashing index.
+              <br>
+              <br>
+              To actually simulate the self-collisions, we get the 3D box that contains the current point mass and then test for collision
+              against the other point masses in the same box. If the distance between two masses is less than <code>2*thickness</code> and
+              the two point masses are not the same point mass, we have a valid collision. The correction vector between a pair of point
+              masses is computed by calculating the difference of <code>2*thickness</code> and the distance between the two point masses.
+              Now the final correction vector is computed by accumulating all the pairwise correction vectors and then averaging by the number
+              of point masses inside the box and <code>simulation_steps</code>.
+              <br>
+              <br>
+              Now we can simulate a cloth folding in without having the cloth clip through itself.
+            </p>
+            <div align="middle">
+              <table style="width=100%;">
+                <tr>
+                  <td>
+                    <img src="images/p4a1.png" align="middle" width="400px"/>
+                  </td>
+                  <td>
+                    <img src="images/p4a2.png" align="middle" width="400px"/>
+                  </td>
+                </tr>
+                <br>
+                <tr>
+                  <td>
+                    <img src="images/p4a3.png" align="middle" width="400px"/>
+                  </td>
+                  <td>
+                    <img src="images/p4a4.png" align="middle" width="400px"/>
+                  </td>
+                </tr>
+              </table>
+            </div>
+
+            <h2 style="font-family:arial;">Varying density and ks</h2>
+              <p style="font-family:arial;">
+                As we can see below, a low density results in bigger folds and continuing the simulation shows that the cloth will unfold
+                itself rather quickly. A high density shows the opposite. The cloth is a lot more wrinklier and produces more folds.
+              </p>
+              <div align="middle">
+                <table style="width=100%;">
+                  <tr>
+                    <td>
+                      <figcaption style="font-family:arial;"align="middle"><code>density</code>: 1 g/cm<sup>2</sup></figcaption>
+                      <img src="images/p4b_density1.png" align="middle" width="400px"/>
+                    </td>
+                    <td>
+                      <figcaption style="font-family:arial;"align="middle"><code>density</code>: 50 g/cm<sup>2</sup></figcaption>
+                      <img src="images/p4b_density50.png" align="middle" width="400px"/>
+                    </td>
+                  </tr>
+                  <br>
+                  <tr>
+                    <td>
+                      <img src="images/p4b_density12.png" align="middle" width="400px"/>
+                    </td>
+                    <td>
+                      <img src="images/p4b_density502.png" align="middle" width="400px"/>
+                    </td>
+                  </tr>
+                </table>
+              </div>
+              <p style="font-family:arial;">
+                Varying the spring constant <code>ks</code> produces results that are sort of inversely related to density. A low
+                <code>ks</code> has looser springs so the cloth will fold onto itself with more wrinkles and produce a more messier fold
+                when nearing its resting state, which is similar to how the cloth reacts with a higher density. A high <code>ks</code>
+                has tighter, stiffer springs so the cloth will produce less wrinkles and bigger folds, which is similar to how the
+                cloth reacts with a low density.
+              </p>
+              <div align="middle">
+                <table style="width=100%;">
+                  <tr>
+                    <td>
+                      <figcaption style="font-family:arial;"align="middle"><code>ks</code>: 500 N/m</figcaption>
+                      <img src="images/p4b_ks500.png" align="middle" width="400px"/>
+
+                    </td>
+                    <td>
+                      <figcaption style="font-family:arial;"align="middle"><code>ks</code>: 50000 N/m</figcaption>
+                      <img src="images/p4b_ks50000.png" align="middle" width="400px"/>
+                    </td>
+                  </tr>
+                  <br>
+                  <tr>
+                    <td>
+                      <img src="images/p4b_ks5001.png" align="middle" width="400px"/>
+                    </td>
+                    <td>
+                      <img src="images/p4b_ks500001.png" align="middle" width="400px"/>
+                    </td>
+                  </tr>
+                </table>
+              </div>
+
+        <br>
+        <div class="backtotop">
+          <button class="button">
+              <a href="#Top" class="button">Back to Top</a>
+          </button>
+        </div>
+
+        <br>
+        <h1 id="Part5" style="font-family:arial; text-align:center;">Part 5: Shaders</h1>
+            <p style="font-family:arial;">
+                Shader programs run in parallel on GPU, allowing for more flexibility in the graphics pipeline and quicker
+                rendering times. These programs take vertices as input which are processed as fragments that are then shaded before
+                being outputted as a single 4-dimensional vector. Here, we use C-like GLSL shaders.
+                <br>
+                <br>
+                A shader program consists of two parts: a vertex shader and a fragment shader, which are contained in a <code>.vert</code>
+                file and a <code>.frag</code> file, respectively. A vertex shader processes each individual vertex's values which are then
+                interpolated using barycentric coordinates across the polygon's face. A fragment shader handles fragments, which are
+                similar to samples, generated from the rasterization stage that are then processed into a final color for that fragment.
+                Using these two components, we can create various shaders.
+                <br>
+                <br>
+                First off is the Blinn-Phong shading model which resuls from a combination of ambient, diffuse, and specular lighting.
+                Ambient shading disregards illumination and results in a single color. It is constant term, <code>L<sub>a</sub> = k<sub>a</sub>I<sub>a</sub></code>
+                in the Blinn-Phong shading equation, where I chose the ambient coefficient <code>k</sub>a = 0.1</code> and <code>I<sub>a</sub></code> is the unit
+                vector. Diffuse lighting is something very familiar to us, where the lighting is distributed uniformly across the object.
+                For diffuse, we use the equation from lecture: <code>L<sub>d</sub> = k<sub>d</sub>(I / r<sup>2</sup>)max(0, dot(n,l)))</code>
+                where the diffuse coefficient <code>k<sub>d</sub> = 1</code>, <code>r<sup>2</sup></code> is the distance to the light squared,
+                and <code>l</code> is the distance to the light. Lastly is the specular reflection, which we compute using
+                <code>L<sub>s</sub> = k<sub>s</sub>(I / r<sup>2</sup>)max(0, dot(n,h)))<sup>p</sup></code>, where the specular coefficient
+                <code>k<sub>s</sub> = 1</code>, <code>r<sup>2</sup></code> and <code>l</code> are the same as in diffuse, and <code>p = 1</code>.
+                Increasing <code>p</code> decreases the specular highlight.
+            </p>
+                <div align="middle">
+                  <table style="width=100%;">
+                    <tr>
+                      <td>
+                        <img src="images/p5a_ambient.png" align="middle" width="400px"/>
+                        <figcaption style="font-family:arial;"align="middle">Ambient</figcaption>
+                      </td>
+                      <td>
+                        <img src="images/p5a_diffuse.png" align="middle" width="400px"/>
+                        <figcaption style="font-family:arial;"align="middle">Diffuse</figcaption>
+                      </td>
+                    </tr>
+                    <br>
+                    <tr>
+                      <td>
+                        <img src="images/p5a_specular.png" align="middle" width="400px"/>
+                        <figcaption style="font-family:arial;"align="middle">Specular</figcaption>
+                      </td>
+                      <td>
+                        <img src="images/p5a_phong.png" align="middle" width="400px"/>
+                        <figcaption style="font-family:arial;"align="middle">Blinn-Phong (all components)</figcaption>
+                      </td>
+                    </tr>
+                  </table>
+                </div>
+            <h2 style="font-family:arial;">Texture Mapping</h2>
+            <p style="font-family:arial;">
+              Texture mapping is a fairly simple implementation where we sample from the texture map given the fragment's
+              (u,v) position using GLSL's <code>texture</code> function.
+              <br>
+              <br>
+              The following custom texture is a picture I took from the Chihuly Garden and Glass Museum in Seattle.
+            </p>
+            <figure style="text-align:center;">
+              <img src="images/p5b_texture.png" alt="Texture Mapping" width="500px">
+            </figure>
+            <h2 style="font-family:arial;">Bump Mapping</h2>
+            <div align="middle">
+              <table style="width=100%;">
+                <tr>
+                  <td>
+                    <img src="images/p5c_bump1.png" align="middle" width="400px"/>
+                  </td>
+                  <td>
+                    <img src="images/p5c_bump2.png" align="middle" width="400px"/>
+                  </td>
+                </tr>
+              </table>
+            </div>
+            <h2 style="font-family:arial;">Displacement Mapping</h2>
+            <div align="middle">
+              <table style="width=100%;">
+                <tr>
+                  <td>
+                    <img src="images/p5d_disp1.png" align="middle" width="400px"/>
+                  </td>
+                  <td>
+                    <img src="images/p5d_disp2.png" align="middle" width="400px"/>
+                  </td>
+                </tr>
+              </table>
+            </div>
+            <h2 style="font-family:arial;">Bump vs. Displacement</h2>
+            <p style="font-family:arial;">
+              As we can see from the above renders, bump maps give the illusion of a textured or bumpy object by modifying the normal
+              vectors while displacement maps also modify normals but also change the geometry of the mesh by adjusting each point mass's
+              position according to the height map which is encoded in a texture.
+              <br>
+              <br>
+              To elaborate on the implementations for these shaders, bump mapping requires we first work in object space to get the local space
+              normal <code>n<sub>O</sub> = (-du, -dv, 1)</code> where <code>du</code> and <code>dv</code> are the small changes in height.
+              To transform the normal from object space to model space, we multiply the local space normal by the tangent-bitangent-normal, or
+              TBN, matrix. We then pass the displaced world space normal through the Blinn-Phong shader.
+              <br>
+              <br>
+              Displacement mapping is a copy-and-paste of bump mapping in the .frag file. Out of all the shaders we implemented in this project,
+              displacement mapping is the only shader where we modify the .vert file. This because we are modifying the fragment positions based
+              on the height map.
+              <br>
+              <br>
+              When changing the sphere from a low poly mesh to a high poly mesh, there seems to be no visible changes in how
+              the shaders react. This is because the spheres have the same radius, so the point masses' positions will be "bumped"
+              to the same radial sphere regardless of the courseness of the sphere. The following images show the bump and displacement
+              shaders when the cloth is at a more restful state.
+            </p>
+            <div align="middle">
+              <table style="width=100%;">
+                <tr>
+                  <td>
+                    <figcaption style="font-family:arial;"align="middle">-o 16 -a 16</figcaption>
+                    <img src="images/p5e_lowres1.png" align="middle" width="400px"/>
+                  </td>
+                  <td>
+                    <figcaption style="font-family:arial;"align="middle">-o 128 -a 128</figcaption>
+                    <img src="images/p5e_hires1.png" align="middle" width="400px"/>
+                  </td>
+                </tr>
+                <br>
+                <tr>
+                  <td>
+                    <img src="images/p5e_lowres2.png" align="middle" width="400px"/>
+                  </td>
+                  <td>
+                    <img src="images/p5e_hires2.png" align="middle" width="400px"/>
+                  </td>
+                </tr>
+              </table>
+            </div>
+
+            <h2 style="font-family:arial;">Environment-mapped Reflections</h2>
+            <p style="font-family:arial;">
+              This mirror material builds off of the model in Project 3-2's pathtracer by taking advantage of an environment map,
+              where we can sample the incoming radiance, and environment lighting. However, here we assume there are no other
+              primitives in the scene so we sample the environment without any shadow rays. In order to sample the map, we need to
+              compute the outgoing eye-ray <code>wo</code>, which is the direction from the camera to the fragment's position, and
+              <code>wi</code>, which is calculated by reflecting <code>wo</code> across the surface normal using GLSL's <code>reflect</code>
+              function.
+            </p>
+            <div align="middle">
+              <table style="width=100%;">
+                <tr>
+                  <td>
+                    <img src="images/p5f_mirror1.png" alt="Environ Map Reflections" width="400px">
+                  </td>
+                  <td>
+                      <img src="images/p5f_mirror2.png" alt="Sphere" width="400px">
+                  </td>
+                </tr>
+              </table>
+            </div>
+
+            <h2 style="font-family:arial;">Extra Credit</h2>
+              <p style="font-family:arial;">
+                I was able to add color controls to each of the previous shaders as shown by the previous images.
+              </p>
+
+        <br>
+        <div class="backtotop">
+          <button class="button">
+              <a href="#Top" class="button">Back to Top</a>
+          </button>
+        </div>
+        <br>
+        <br>
+
+    </body>
+</html>

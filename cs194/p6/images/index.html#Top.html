@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<!-- saved from url=(0095)file:///Users/maddiepahati/Workspaces/cs194/projFinal/maddie_pahati_final_proj/index.html#Part1 -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=windows-1252"><style>
+        body {
+          margin: 0px 125px;
+          background-color: rgb(240, 240, 240);
+        }
+        div {
+          text-align: center;
+        }
+        button {
+          background-color: #008080; /* teal */
+          border: none;
+          color: white;
+          padding: 16px 32px;
+          width: 200px;
+          text-align: center;
+          border-radius: 4px;
+          font-size: 16px;
+          margin: 4px 2px;
+          opacity: 0.6;
+          transition: 0.3s;
+          display: inline-block;
+          text-decoration: none;
+          cursor: pointer;
+          position:
+        }
+        button:hover {opacity: 1}
+        .backtotop {text-align: right;}
+        a {
+          text-decoration: none;
+          color: white;
+          display: block;
+        }
+        .link {color: blue}
+
+    </style>
+    </head><body>
+        <a name="top"></a>
+        <h3 class="name" style="font-family:arial;">CS194-26: Image Manipulation and Computational Photography Fall 2018<br>Maddie Pahati, cs194-26-abz</h3>
+
+        <h1 class="proj" style="font-family:arial; text-align:center;">Final Project</h1>
+
+        <div>
+          <button class="button">
+              <a href="file:///Users/maddiepahati/Workspaces/cs194/projFinal/maddie_pahati_final_proj/index.html#Part1" class="button">Vertigo Shot</a>
+          </button>
+          <button class="button">
+              <a href="file:///Users/maddiepahati/Workspaces/cs194/projFinal/maddie_pahati_final_proj/index.html#Part2" class="button">Fake Miniatures</a>
+          </button>
+        </div>
+
+        <br>
+        <h1 id="Part1" style="font-family:arial;text-align:center;">Vertigo Shot</h1>
+
+        <br>
+        <h2 style="font-family:arial;">Overview</h2>
+            <p style="font-family:arial;">
+              The Vertigo Shot, also known as the Dolly Zoom, is a reference to the famous scene in Hitchcock's Vertigo (1958).
+              I achieved the Dolly Zoom through two ways: zooming in while dollying out (such that the background compresses)
+              and zooming out while dollying in (such that the background expands). I made sure to keep the subject of the image relatively the
+              same size as I increased or decreased my distance to the subject.
+              For this project I used my Sony Alpha a6000 Mirrorless camera.
+              <br>
+              <br>
+              The third scene is an attempt to recreate Hitchcock's famous staircase dolly zoom at the Hotel Vertigo in
+              SF. Unfortunately I did not have the means to effectively dolly vertically, so I tried an alternative way by taking
+              the pictures at each floor. However, there is a significant amount of distance between each floor so the zoom looks
+              very disjoint.
+            </p>
+            <br>
+            <figure style="text-align:center;">
+              <img src="./index.html#Top_files/basketball1.jpg" alt="Basketball1" style="width:275px;height:183px;">
+              <img src="./index.html#Top_files/basketball2.jpg" alt="Basketball2" style="width:275px;height:183px;">
+              <img src="./index.html#Top_files/basketball3.jpg" alt="Basketball3" style="width:275px;height:183px;">
+              <img src="./index.html#Top_files/basketball4.jpg" alt="Basketball4" style="width:275px;height:183px;">
+            </figure>
+            <figure style="text-align:center;">
+              <img src="./index.html#Top_files/lamp1.jpg" alt="Lamp1" style="width:275px;height:183px;">
+              <img src="./index.html#Top_files/lamp2.jpg" alt="Lamp2" style="width:275px;height:183px;">
+              <img src="./index.html#Top_files/lamp3.jpg" alt="Lamp3" style="width:275px;height:183px;">
+              <img src="./index.html#Top_files/lamp4.jpg" alt="Lamp4" style="width:275px;height:183px;">
+            </figure>
+            <figure style="text-align:center;">
+              <img src="./index.html#Top_files/vertigo1.jpg" alt="Vertigo1" style="width:275px;height:183px;">
+              <img src="./index.html#Top_files/vertigo2.jpg" alt="Vertigo2" style="width:275px;height:183px;">
+              <img src="./index.html#Top_files/vertigo3.jpg" alt="Vertigo3" style="width:275px;height:183px;">
+              <img src="./index.html#Top_files/vertigo4.jpg" alt="Vertigo4" style="width:275px;height:183px;">
+            </figure>
+
+
+        <h2 style="font-family:arial;">Bells &amp; Whistles: gifs</h2>
+            <figure style="text-align:center;">
+                <a href="https://imgur.com/SBN6DnW"><img src="./index.html#Top_files/SBN6DnW.gif" title="source: imgur.com" style="width:600px;height:400px;"></a>
+                <a href="https://imgur.com/vNkv5e2"><img src="./index.html#Top_files/vNkv5e2.gif" title="source: imgur.com" style="width:600px;height:400px;"></a>
+                <a href="https://imgur.com/FFlQ7vy"><img src="./index.html#Top_files/FFlQ7vy.gif" title="source: imgur.com" style="width:600px;height:400px;"></a>
+            </figure>
+
+
+        <br>
+        <div class="backtotop">
+          <button class="button">
+              <a href="file:///Users/maddiepahati/Workspaces/cs194/projFinal/maddie_pahati_final_proj/index.html#Top" class="button">Back to Top</a>
+          </button>
+        </div>
+
+        <br>
+        <h1 id="Part2" style="font-family:arial; text-align:center;">Fake Miniatures</h1>
+        <br>
+        <h2 style="font-family:arial;">Overview</h2>
+            <p style="font-family:arial;">
+                This project aimed to recreate the selective focus camera effect, a Tilt Shift, by selecting a focus plane and blurring the rest of the
+                image. The end result is a narrower depth of field and gives the illusion that one was really close to the subject. For my implementation,
+                I first started by creating a horizontal mask and used the following workflow:
+                <br>
+                - select a point of interest (the y coordinate will be used to create the horzontal mask with a default padding of 150 pixels above
+                and below the y coordinate)
+                <br>
+                - increase saturation of the image by 50%
+                <br>
+                - in five levels, recursively increase the size of the mask
+                <br>
+                &#8195;- invert the mask to get everything except the focus plane
+                <br>
+                &#8195;- blur the rest of the image
+                <br>
+                &#8195;- add focused part and blurred image
+                <br>
+                The result is an image where the image gets blurrier and blurrier as you get farther from the focus plane.
+
+            </p>
+            <br>
+            <p style="font-family:arial;text-align:center;">
+               Tossa de Mar
+               <br>
+               Photo taken by me
+            </p>
+            <figure style="text-align:center;">
+              <img src="./index.html#Top_files/spain.jpg" alt="Spain" style="width:375px;height:267px;">
+              <img src="./index.html#Top_files/spain_mask.jpg" alt="Spain Mask" style="width:375px;height:267px;">
+              <img src="./index.html#Top_files/spain_mini.jpg" alt="Spain Mini" style="width:750px;height:500px;">
+            </figure>
+            <p style="font-family:arial;text-align:center;">
+               Wondercon
+               <br>
+               Photo taken by me
+            </p>
+            <figure style="text-align:center;">
+              <img src="./index.html#Top_files/wondercon.jpg" alt="Wondercon" style="width:500px;height:375px;">
+              <img src="./index.html#Top_files/wondercon_mini.jpg" alt="Wondercon Mini" style="width:500px;height:375px;">
+            </figure>
+            <p style="font-family:arial;text-align:center;">
+               Boats in Tossa de Mar
+               <br>
+               Photo taken by me
+            </p>
+            <figure style="text-align:center;">
+              <img src="./index.html#Top_files/boats.jpg" alt="Boats" style="width:500px;height:375px;">
+              <img src="./index.html#Top_files/boats_mini.jpg" alt="Boats Mini" style="width:500px;height:375px;">
+            </figure>
+
+        <br>
+        <h2 style="font-family:arial;">Bells &amp; Whistles: Complex DOF Regions</h2>
+            <p style="font-family:arial;">
+               I implemented a way to have the user specify a number of points, and then click around the image to create a complex mask.
+            </p>
+            <p style="font-family:arial;text-align:center;">
+               Alpine Climb
+               <a class="link" href="https://www.pexels.com/photo/two-man-hiking-on-snow-mountain-869258/">source</a>
+            </p>
+            <figure style="text-align:center;">
+              <img src="./index.html#Top_files/alpine.jpg" alt="Alpine" style="width:375px;height:267px;">
+              <img src="./index.html#Top_files/alpine_mask.jpg" alt="Alpine Mask" style="width:375px;height:267px;">
+              <img src="./index.html#Top_files/alpine_mini.jpg" alt="Alpine Mini" style="width:750px;height:500px;">
+            </figure>
+            <p style="font-family:arial;text-align:center;">
+               Cable Car
+               <a class="link" href="https://www.pexels.com/photo/group-of-people-going-up-to-mountain-1525662/">source</a>
+            </p>
+            <figure style="text-align:center;">
+              <img src="./index.html#Top_files/cablecar.jpg" alt="Cable Car" style="width:375px;height:267px;">
+              <img src="./index.html#Top_files/cablecar_mask.jpg" alt="Cable Car Mask" style="width:375px;height:267px;">
+              <img src="./index.html#Top_files/cablecar_mini.jpg" alt="Cable Car Mini" style="width:750px;height:500px;">
+            </figure>
+            <p style="font-family:arial;text-align:center;">
+               Castle
+               <a class="link" href="https://www.pexels.com/photo/architecture-building-castle-city-301469/">source</a>
+            </p>
+            <figure style="text-align:center;">
+              <img src="./index.html#Top_files/castle.jpg" alt="Castle" style="width:500px;height:375px;">
+              <img src="./index.html#Top_files/castle_mini.jpg" alt="Castle Mini" style="width:500px;height:375px;">
+            </figure>
+            <p style="font-family:arial;text-align:center;">
+               Hotel in Hawaii
+               <br>
+               Photo taken by me
+            </p>
+            <figure style="text-align:center;">
+              <img src="./index.html#Top_files/hotel.jpg" alt="Hotel" style="width:500px;height:375px;">
+              <img src="./index.html#Top_files/hotel_mini.jpg" alt="Hotel Mini" style="width:500px;height:375px;">
+            </figure>
+
+
+        <br>
+        <h2 style="font-family:arial;">Bells &amp; Whistles: Stop Motion</h2>
+            <p style="font-family:arial;">
+               I took a series of photos of Union Square from the Cheesecake Factory terrace and then blurred each image with the same
+               point of interest to create a fake stop motion animation.
+            </p>
+            <figure style="text-align:center;">
+              <a href="https://imgur.com/WalxDFi"><img src="./index.html#Top_files/WalxDFi.gif" title="source: imgur.com" style="width:1080px;height:637px;"></a>
+            </figure>
+
+
+
+        <!-- <br>
+        <h2 style="font-family:arial;">Reflection</h2>
+            <p style="font-family:arial;">
+              I learned a lot through this project, which has taught me so much about homographies and altering perspectives. It was
+              also great to use what I have learned and coded in previous projects and apply them here. In Part 2, it was interesting
+              studying (and fun implementing) the steps that is needed to create a panorama image. Dictionaries were my friends in Part 2,
+              and I learned a lot more about Python dictionaries and discovered some fun indexing tricks you can do with them.
+              <br>
+              <br>
+              I had a bug that continued since Part 1 where my images wouldn't align correctly. The resulting mosaic would be off by less than 20 pixels
+              in either direction, and I could not for the life of me figure out what was wrong. That is, until I started plotting points using matplotlib.pyplot
+              at various locations in my code. I was able to effectively troubleshoot by plotting points, and I learned more about how to plot points using
+              matplotlib.
+              <br>
+              <br>
+              The coolest part for me was that I was able to take photos I've taken months or even years ago
+              and either warp the image so that the object is now frontal-planar or take two photos and create a panorama after-the-fact.
+            </p> -->
+
+        <br>
+        <div class="backtotop">
+          <button class="button">
+              <a href="file:///Users/maddiepahati/Workspaces/cs194/projFinal/maddie_pahati_final_proj/index.html#Top" class="button">Back to Top</a>
+          </button>
+        </div>
+        <br>
+        <br>
+
+    
+
+</body></html>

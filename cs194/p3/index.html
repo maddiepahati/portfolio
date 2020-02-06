@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html>
+    <style>
+        body {
+          margin: 0px 125px;
+          background-color: rgb(240, 240, 240);
+        }
+        div {
+          background-color: rgb(240, 240, 240);
+          width: 400px;
+          border: 5px dotted darkgrey;
+          padding: 10px;
+          margin: 25px;
+          font-family: arial;
+        }
+    </style>
+    <body>
+
+        <h3 class="name" style="font-family:arial;">CS194-26: Image Manipulation and Computational Photography Fall 2018<br>Maddie Pahati, cs194-26-abz</h3>
+
+        <h1 class="proj" style="font-family:arial; text-align:center;">Project 3: Fun with Frequencies and Gradients!</h1>
+
+        <br>
+        <h2 style="font-family:arial; text-align:center;">Part 1: Frequency Domain</h2>
+        <h2 style="font-family:arial;">Part 1.1: Warmup</h2>
+            <p style="font-family:arial;">
+              I began this project by taking an image and sharpening it using a Gaussian kernel which would then
+              be filtered over the image to produce a blurrier image. The high frequencies are extracted by
+              taking the difference between the original and blurrier image. To get the final sharpened image, the
+              high frequency image is multiplied by an arbitrary scalar amount, alpha, and then added back to the original,
+              which is summed up in the following formula:
+            </p>
+            <p style="font-family:arial;text-align:center;">
+              <div style="text-align:center">
+                  sharpened_img = img + alpha(img - blurred_img)
+              </div>
+            </p>
+            <figure style="text-align:center;border:5px solid darkgray">
+              <img src="images/spain_all.jpg" alt="Process" style="width:1014px;height:282px;">
+              <figcaption style="font-family:arial;">The Sharpening Process</figcaption>
+            </figure>
+            <figure style="text-align:center;border:5px solid darkgray">
+              <img src="images/spain.jpg" alt="Spain Sharpened" style="width:1014px;height:362px;">
+              <figcaption style="font-family:arial;">Street Art in Barcelona, Spain</figcaption>
+            </figure>
+            <figure style="text-align:center;border:5px solid darkgray">
+              <img src="images/rocks.jpg" alt="Rocks Sharpened" style="width:1014px;height:282px;">
+              <figcaption style="font-family:arial;">Blurry Rocks in Barcelona, Spain</figcaption>
+            </figure>
+            <p style="font-family:arial;">
+              The two photos above were taken by me. :)
+            </p>
+          <br>
+
+        <h2 style="font-family:arial;">Part 1.2: Hybrid Images</h2>
+            <p style="font-family:arial;">
+              Next was to create a hybrid image, which is an image that can be seen differently based on the
+              viewer's proximity to the image. At a close range, the high frequencies of an image will dominate but at a
+              further distance, the low frequencies of another image will be seen.
+              <br>
+              <br>
+              To get the hybrid image, I had to low-pass filter one image and then high-pass filter a second image.
+              I used the techniques in the sharpening image warmup to create the low-pass filter (which uses a Gaussian kernel and
+              a filter function to blur the entire image). The high-pass filter builds off my low-pass filter which passes the image
+              through the low-pass filter and then subtracts the filtered image from original. The cut-off frequency, sigma,
+              determines how many low frequencies or high frequencies are let through (in other words how blurry or detailed an image is)
+              and was chosen with much experimentation.
+            </p>
+            <figure style="text-align:center;border:5px solid darkgray">
+              <img src="images/derek_nutmeg.jpg" alt="Derek and Nutmeg" style="width:1014px;height:839px;">
+              <figcaption style="font-family:arial;">Derek and Nutmeg</figcaption>
+            </figure>
+            <figure style="text-align:center;border:5px solid darkgray">
+              <img src="images/aang_zuko.jpg" alt="Aang and Zuko Dragon Dance" style="width:1014px;height:517px;">
+              <figcaption style="font-family:arial;">Aang and Zuko: The Dragon Dance</figcaption>
+            </figure>
+          <br>
+            <h3 style="font-family:arial;">A failure case.</h3>
+              <p style="font-family:arial;">
+                Here from close up and far away, we don't see just a corgi or just a tiger but an actual hybrid with a corgi's
+                head and a tiger's body. This is because the tiger has a lot of high frequencies which overpower the corgi's
+                overall low frequency image. A simple switch to low-pass filter the corgi and
+                high-pass filter the tiger results in a more successful hybrid.
+              </p>
+              <figure style="text-align:center;border:5px solid darkgray">
+                <img src="images/tiger_corgi_hybrid.jpg" alt="Tiger-Corgi" style="width:500px;height:361px;">
+                <figcaption style="font-family:arial;">The Tiger-Corgi</figcaption>
+              </figure>
+              <figure style="text-align:center;border:5px solid darkgray">
+                <img src="images/corgi_tiger.jpg" alt="Corgi and Tiger" style="width:1014px;height:517px;">
+                <figcaption style="font-family:arial;">Corgi and Tiger</figcaption>
+              </figure>
+            <br>
+              <h3 style="font-family:arial;">I am Iron Man.</h3>
+                <p style="font-family:arial;">
+                  This is my favorite hybrid result followed by the frequency analysis using a Fourier transformation.
+                </p>
+                <figure style="text-align:center;border:5px solid darkgray">
+                  <img src="images/rdj_ironman.jpg" alt="RDJ Iron Man" style="width:1014px;height:818px;">
+                  <figcaption style="font-family:arial;">RDJ is Iron Man</figcaption>
+                </figure>
+                <figure style="text-align:center;border:5px solid darkgray">
+                  <img src="images/rdj_fft.jpg" alt="fft" style="width:1014px;height:335px;">
+                  <figcaption style="font-family:arial;">Frequency Analysis</figcaption>
+                </figure>
+
+        <br>
+        <h2 style="font-family:arial;">Part 1.3: Gaussian and Laplacian Stacks</h2>
+            <p style="font-family:arial;">
+              In this part, I implemented Gaussian and Laplacian stacks. To create the Gaussian stacks, I applied the low-pass filter
+              to an image N amount of times, and to create the Laplacian stacks, I took the difference between the x and x+1 levels
+              of the Gaussian stack. The last image in the Laplacian stack is the last image of the Gaussian stack (the blurriest
+              image).
+            </p>
+            <figure style="text-align:center;border:5px solid darkgray">
+              <img src="images/dali_stacks.jpg" alt="Salvador Dali" style="width:1014px;height:546px;">
+              <figcaption style="font-family:arial;">Gala Contemplating the Mediterranean Sea which at Twenty Meters Becomes the Portrait of Abraham Lincoln by Dali</figcaption>
+            </figure>
+            <figure style="text-align:center;border:5px solid darkgray">
+              <img src="images/monalisa_stacks.jpg" alt="Mona Lisa" style="width:1014px;height:614px;">
+              <figcaption style="font-family:arial;">Mona Lisa</figcaption>
+            </figure>
+            <figure style="text-align:center;border:5px solid darkgray">
+              <img src="images/rdj_stacks.jpg" alt="RDJ" style="width:1014px;height:505px;">
+              <figcaption style="font-family:arial;">RDJ and Iron Man</figcaption>
+            </figure>
+
+        <br>
+        <h2 style="font-family:arial;">Part 1.4: Multiresolution Blending</h2>
+            <p style="font-family:arial;">
+              Here I aimed to seamlessly blend two images together using a multiresolution blending technique which takes
+              advantage of the use of an image spline, which is a seam that joins two images together such that one image
+              smoothly transforms into another image. The spline is computed for both images using the multiresolution blending
+              technique at each level of frequencies so that when the images are stacked together, we get a seamless transition.
+            </p>
+        <h3 style="font-family:arial;">Bells and Whistles</h3>
+          <p style="font-family:arial;">
+            Using color definitely enhances the effect. After separating the images and masks into the three color channels, I performed my
+            algorithm over each channel then stacked them together. Blending in color allows us to better see the cool transitions between
+            one image and another (especially for my favorite result, Neptars).
+          </p>
+          <figure style="text-align:center;border:5px solid darkgray">
+            <img src="images/neptars.jpg" alt="Neptars" style="width:320px;height:320px;">
+            <img src="images/oraple.jpg" alt="Oraple" style="width:320px;height:320px;">
+            <img src="images/sofia_jaylah.jpg" alt="Sofia" style="width:338px;height:293px;">
+            <figcaption style="font-family:arial;">Neptars&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;Oraple&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;Sofia Boutella and Jaylah</figcaption>
+          </figure>
+          <figure style="text-align:center;border:5px solid darkgray">
+            <img src="images/neptars_lp_stack.jpg" alt="Neptars Stack" style="width:1014px;height:609px;">
+            <figcaption style="font-family:arial;">Laplacian Stack Process for Neptars</figcaption>
+          </figure>
+          <figure style="text-align:center;border:5px solid darkgray">
+            <img src="images/sf_skyline.jpg" alt="SF Skyline" style="width:470px;height:320px;">
+            <img src="images/up.jpg" alt="UP" style="width:470px;height:292px;">
+            <img src="images/up_mask.jpg" alt="SF Skyline" style="width:470px;height:320px;">
+            <img src="images/sf_up.jpg" alt="SF UP" style="width:470px;height:320px;">
+            <figcaption style="font-family:arial;">UP in SF</figcaption>
+          </figure>
+          <figure style="text-align:center;border:5px solid darkgray">
+            <img src="images/starwars.jpg" alt="Star Wars" style="width:470px;height:263px;">
+            <img src="images/wall-e.jpg" alt="Walle" style="width:470px;height:292px;">
+            <img src="images/walle_mask.jpg" alt="Walle Mask" style="width:470px;height:263px;">
+            <img src="images/starwars_walle.jpg" alt="SF UP" style="width:470px;height:263px;">
+            <figcaption style="font-family:arial;">Wall-e in Star Wars</figcaption>
+          </figure>
+
+        <h2 style="font-family:arial; text-align:center;">Part 2: Gradient Domain Fusion</h2>
+            <p style="font-family:arial;">
+              All the previous parts have led us here to gradient-domain processing which is another technique used for blending.
+              These last parts of the project focus on "poisson blending" which uses gradients and specified pixels intensities to
+              blend an object from a source image into a target image as if the object was in the environment of the target image
+              in the first place.
+              <br>
+              <br>
+              Formulated as a least squares problem depicted below, our objective was to solve for the new pixel values "v" given the
+              pixel intensities of the source image "s" and the target image "t."
+            </p>
+            <img src="images/leastsquares.jpg" alt="LS" style="width:500px;height:48px;border:5px dotted darkgrey;">
+        <h2 style="font-family:arial;">Part 2.1: Toy Problem</h2>
+            <p style="font-family:arial;">
+              To figure out all the math involved, I started off with the toy example. My implementation for this
+              example computes the x and y gradients of every pixel in a source image s. Then I combined
+              all of the gradients plus one pixel intensity to reconstruct the original image v.
+            </p>
+            <figure style="text-align:center;">
+              <img src="images/toy_problem.png" alt="Toy OG" style="width:200px;height:216px;">
+              <img src="images/toy_problem_recovered.jpg" alt="Toy Recovered" style="width:200px;height:216px;">
+              <figcaption style="font-family:arial;">Original&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;Reconstructed</figcaption>
+            </figure>
+
+        <h2 style="font-family:arial;">Part 2.2: Poisson Blending</h2>
+            <p style="font-family:arial;">
+              Finally, I attempted to extend my implementation in the Toy Problem to more complex images, i.e. using a mask to seamlessly blend an object
+              from image s into the target image t. One problem I immediately ran into was runtime. My application kept on crashing because the
+              size of my input images were massive compared to the image used in the previous part. This was solved by vectorizing my code using
+              scipy.sparse.csr_matrix(data, (row, col)) which also required a lot of experimentation to find out how to maximize the function's use. However,
+              I was unable to successfully blend an image into the target background. The source object turned out dark in the target image.
+            </p>
+            <figure style="text-align:center;border:5px solid darkgray">
+              <img src="images/im2.JPG" alt="Snow" style="width:300px;height:400px;">
+              <img src="images/penguin-chick-transf.jpg" alt="Penguin Transf" style="width:300px;height:400px;">
+              <img src="images/penguin-chick-mask.jpg" alt="Penguin Mask" style="width:300px;height:400px;">
+              <img src="images/penguin_naive.jpg" alt="Penguin Naive" style="width:300px;height:400px;">
+              <img src="images/penguin.jpg" alt="Penguin Blend" style="width:300px;height:400px;">
+            </figure>
+
+          <h2 style="font-family:arial;">Thoughts on Laplacian pyramid blending versus Poisson blending</h2>
+            <p style="font-family:arial;">
+              Although I was unable to successfully create a blended image, I did have some thoughts on which blending techniques would work best.
+              If one would like to keep the integrity of an image, such as the color of an object, Laplacian blending would be the best approach
+              as this technique smooths out the edges. Using my Neptars hybrid image as an example, Laplacian blending would keep this seamless transition whereas I
+              imagine Poisson blending would cause Mars to take on a more blueish hue to accomodate the target image which is Neptune. Thus, if the desired
+              result is to have the object blend with the background, Poisson blending is the best approach.
+            </p>
+
+        <h2 style="font-family:arial;">Reflection</h2>
+            <p style="font-family:arial;">
+              This project was very fun using different methods to blend two images together that produce different results.
+              What I liked most is that this project focused on experimentation and interacting directly with the images. There is
+              no right way to code, and I was able to explore different Python libraries. One thing I learned on a practical level is
+              how to vectorize code in Python which proved to be very helpful in what I could get done in Part 2.2. However, the amount
+              of experimentation and finding better approaches proved to be very time consuming and difficult. Nevertheless, it was
+              interesting to see what can be done when playing around with frequencies of an image.
+            </p>
+
+    </body>
+</html>

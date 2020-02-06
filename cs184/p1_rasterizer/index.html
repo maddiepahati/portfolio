@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html>
+    <style>
+        body {
+          margin: 0px 125px;
+          background-color: rgb(240, 240, 240);
+        }
+        div {
+          text-align: center;
+        }
+        table {
+          margin: 0 auto; /* or margin: 0 auto 0 auto */
+        }
+        button {
+          background-color: #008080; /* teal */
+          border: none;
+          color: white;
+          padding: 16px 32px;
+          width: 175px;
+          text-align: center;
+          border-radius: 4px;
+          font-size: 16px;
+          margin: 4px 2px;
+          opacity: 0.6;
+          transition: 0.3s;
+          display: inline-block;
+          text-decoration: none;
+          cursor: pointer;
+          position:
+        }
+        button:hover {opacity: 1}
+        .backtotop {text-align: right;}
+        .link {
+          color: blue;
+          display: inline-block
+        }
+        a {
+          text-decoration: none;
+          color: white;
+          display: block;
+        } */
+
+
+    </style>
+    <body>
+        <a name="top"></a>
+        <h3 class="name" style="font-family:arial;">CS184: Computer Graphics and Imaging, Spring 2019<br>Maddie Pahati, cs184-abo</h3>
+
+        <h1 class="proj" style="font-family:arial; text-align:center;">Project 1: Rasterizer</h1>
+
+        <div>
+          <button class="button">
+              <a href="#Part1" class="button">Section 1</a>
+          </button>
+          <button class="button">
+              <a href="#Part2" class="button">Section 2</a>
+          </button>
+        </div>
+
+        <br>
+        <h2 style="font-family:arial;">Overview</h2>
+            <p style="font-family:arial;">
+              For this project, we implemented a rasterizer that takes in pixel coordinates that will then be rendered to
+              a 2D screen space. This process is completed by integrating the core concepts of the rasterization pipeline
+              which include supersampling, antialiasing, and transformations. In addition, we implemented sampling for
+              texture mapping.
+            </p>
+
+        <br>
+        <h1 id="Part1" style="font-family:arial;text-align:center;">Section 1: Rasterization</h1>
+
+        <br>
+        <h2 style="font-family:arial;">Part 1: Rasterizing Single-Color Triangles</h2>
+            <p style="font-family:arial;">
+              The rasterization process draws a triangle to the framebuffer by converting input triangles into framebuffer
+              pixel values. Triangles are used because it is the most basic polygon with unique properties that
+              guarantee planarity, provide a well-defined interior, and provide a well-defined method to interpolate the values
+              at triangle vertices.
+              <br>
+              <br>
+              In order to convert a triangle into framebuffer pixel values, we must first sample for each pixel center inside the
+              triangle. To save us from unnecessarily checking the entire image for every input triangle, my implementation
+              restrains the search to a box around the triangle bounded by (xmin, ymin) to (xmax, ymax) where x/y-min and x/y-max
+              are the minimum and maximum x and y values of the three triangle vertices.
+              <br>
+              <br>
+              Now to check if a pixel is inside a triangle, we use the point-in-triangle test, aka the three lines test. After
+              defining the appropriate equations, if the result for the three lines are all greater than 0, then we have a hit,
+              and the pixel is in the triangle. One case we have to account for is when the points are not given in a
+              counterclockwise order because otherwise some shapes may not be colored in. A quick check using slopes
+              determines if the ordering is counterclockwise or not, and if not then we manually switch the points. If the pixel is a hit
+              inside the triangle then we fill that pixel with the provided color.
+            </p>
+
+            <figure style="text-align:center;">
+              <img src="images/part1.png" alt="Part1" width="800px">
+              <figcaption style="font-family:arial;">basic/test4.svg</figcaption>
+            </figure>
+            <p style="font-family:arial;">
+              We have successfully implemented a basic triangle rasterization! However, these triangles have very sharp and jagged
+              edges, some of which contain pixels that are afloat as we can see in the above image. These discontinuities in the
+              image plane are called jaggies that result from a low sampling rate.
+            </p>
+
+
+        <br>
+        <h2 style="font-family:arial;">Part 2: Antialiasing Triangles</h2>
+            <p style="font-family:arial;">
+              Jaggies are an example of aliasing which can be "smoothed" out by supersampling. To implement supersampling, we first
+              determine how many samples per side there are, which can be calculated by taking the square root of the sample rate.
+              Then for each pixel center within the bounding box, we further iterate through the sub-pixels which is bounded by
+              the amount of samples per side. We determine if the subpixel is in the triangle using the methods described in Part 1,
+              and fill in the sub-pixel with its color value which may vary slightly with its neighboring subpixels. This slight
+              variation of color is important because now rather than only accounting for a single pixel's data as done naively in Part 1,
+              here we can average the colors of all the sub-pixels. Then this average color will serve as the final pixel value. As
+              a result, the triangle edges will smooth out thanks to the averaging of sub-pixel color values.
+            </p>
+            <div>
+              <table style="width=100%;">
+                <tr>
+                  <td>
+                    <img src="images/part2_2a.png" align="middle" width="400px"/>
+                    <figcaption style="font-family:arial;"align="middle">1 sample per pixel</figcaption>
+                  </td>
+                  <td>
+                    <img src="images/part2_2b.png" align="middle" width="400px"/>
+                    <figcaption style="font-family:arial;"align="middle">4 samples per pixel</figcaption>
+                  </td>
+                </tr>
+              </table>
+            </div>
+            <figure style="text-align:center;">
+              <img src="images/part2_2d.png" alt="16" width="400px">
+              <figcaption style="font-family:arial;">16 samples per pixel</figcaption>
+            </figure>
+            <p style="font-family:arial;">
+              As we can see in the three above results, the very skinny red triangle edge smooths out as the sampling rate
+              increases. This is because we essentially divide up the triangle into smaller and smaller pieces. So we can
+              get more samples and average their color values together to create a more continuous image.
+            </p>
+
+        <br>
+        <h2 style="font-family:arial;">Part 3: Transforms</h2>
+            <p style="font-family:arial;">
+              My cubeman took the translate, rotate, and scale transformations we had to implement to the max and decided to
+              become a snowboarder. I added some blues to give the cubeman a decent outfit with a dark green helmet. The
+              proportions of the original cubeman stayed the same but the positions of the limbs were heavily shifted. I also
+              added more polygons for the goggles, snowboard, and proxy mountain.
+
+            </p>
+            <figure style="text-align:center;">
+              <img src="images/part3.png" alt="Part3" width="800px">
+              <figcaption style="font-family:arial;">Snowboarding</figcaption>
+            </figure>
+
+        <br>
+        <div class="backtotop">
+          <button class="button">
+              <a href="#Top" class="button">Back to Top</a>
+          </button>
+        </div>
+
+        <br>
+        <h1 id="Part2" style="font-family:arial; text-align:center;">Section II: Sampling</h1>
+
+        <br>
+        <h2 style="font-family:arial;">Part 4: Barycentric Coordinates</h2>
+            <p style="font-family:arial;">
+              Barycentric coordinates are a way to interpolate values at three vertices of a triangle for any given
+              point (x,y) within the triangle. Take the left image below from this
+              <a class="link" href="https://www.scratchapixel.com/lessons/3d-basic-rendering/ray-tracing-rendering-a-triangle/barycentric-coordinates">
+                lesson</a>
+               about barycentric coordinates:
+            </p>
+            <div>
+              <table style="width=100%;">
+                <tr>
+                  <td>
+                    <img src="images/barycentriccolor.png" align="middle" width="300px"/>
+                  </td>
+                  <td>
+                    <img src="images/barycentriceqn.png" align="middle" width="500px"/>
+                  </td>
+                </tr>
+              </table>
+            </div>
+            <p style="font-family:arial;">
+              In order to get the value at point P(x,y), we must calculate how much influence the vertices A, B, and C have on P using the
+              formula P(x,y) = uA + vB + wC. From now on I will refer to u, v, and w as alpha, beta, and gamma to be consistent with the
+              course. Alpha, beta, and gamma can then be thought of as weights. To solve for these weights, we can create a system of
+              linear equations as detailed in the above right pictures taken from lecture slides. Once we have alpha, beta, and gamma,
+              we can multiply the weights by the vertices' data to get a color value that blends the red, green, and blue vertices. This creates
+              a triangle with smooth, blended colors.
+            </p>
+            <figure style="text-align:center;">
+              <img src="images/part4.png" alt="Part4" width="800px">
+              <figcaption style="font-family:arial;">svg/basic/test7.svg</figcaption>
+            </figure>
+
+        <br>
+        <h2 style="font-family:arial;">Part 5: "Pixel Sampling" for Texture Mapping</h2>
+            <p style="font-family:arial;">
+              Pixel sampling interpolates the color for a given pixel using either of two methods: nearest-pixel
+              sampling and bilinear sampling. Both methods begin by finding the barycentric coordinates and then using
+              the alpha, beta, and gamma weights to determine the uv coordinates in texture space. However, uv coordinates
+              can often times land in between pixels, and so we use nearest-pixel or bilinear sampling to interpolate the
+              values.
+              <br>
+              <br>
+              For nearest-pixel sampling, we do as the name suggests, and we get the color of the point's nearest neighbor.
+              To do this, we scale the uv coordinates up by the width and height, round both values, and then index into the
+              texel array. Bilinear sampling is a little trickier. It involves linearly interpolating the colors (in 1D space)
+              twice in the horizontal direction and then once in the vertical direction to get the desired texture value. My
+              workflow was as follows:
+              <br>
+              &emsp;- scale up uv coordinates by the width and height
+              <br>
+              &emsp;- get the nearest pixel by rounding
+              <br>
+              &emsp;- get the color of the four nearest neighbors with respect to the nearest pixel
+              <br>
+              &emsp;- calculate the fractional offsets, s (horizontal direction) and t (vertical direction)
+              <br>
+              &emsp;- linear interpolate in horizontal direction
+              <br>
+              &emsp;&emsp;- u0 = lerp(s, lower left neighbor, lower right neighbor)
+              <br>
+              &emsp;&emsp;- u1 = lerp(s, upper left neighbor, upper right neighbor)
+              <br>
+              &emsp;- linear interpolate in vertical direction
+              <br>
+              &emsp;&emsp;- color = lerp(t, u0, u1)
+            </p>
+            <div>
+              <table style="width=100%;">
+                <tr>
+                  <td>
+                    <img src="images/part5_near1.png" align="middle" width="500px"/>
+                    <figcaption style="font-family:arial;"align="middle">Nearest Pixel Sampling. 1 sample per pixel</figcaption>
+                  </td>
+                  <td>
+                    <img src="images/part5_bilinear1.png" align="middle" width="500px"/>
+                    <figcaption style="font-family:arial;"align="middle">Bilinear Pixel Sampling. 1 sample per pixel</figcaption>
+                  </td>
+                </tr>
+                <br>
+                <tr>
+                  <td>
+                    <img src="images/part5_near16.png" align="middle" width="500px"/>
+                    <figcaption style="font-family:arial;"align="middle">Nearest Pixel Sampling. 16 samples per pixel</figcaption>
+                  </td>
+                  <td>
+                    <img src="images/part5_bilinear16.png" align="middle" width="500px"/>
+                    <figcaption style="font-family:arial;"align="middle">Bilinear Pixel Sampling. 16 sample per pixel</figcaption>
+                  </td>
+                </tr>
+              </table>
+            </div>
+            <p style="font-family:arial;">
+              As we can see, the colors are very defined in nearest-pixel. Many of the pixels, even next-door neighbors, can
+              have a big change in the color. Whereas in bilinear sampling, the colors and lines are smoothed out more
+              because of the color averaging of the neighboring four pixels. There is a large difference here in this image between
+              the two methods because the parrot has very sharp edges with large color differences. Thus averaging would
+              be more beneficial to nicely smooth the edges compared to an image with low changes in color where the neighboring
+              pixels are very similar. In sum, bilinear seems to be best for the high frequency images, and nearest-pixel can be used
+              for the low frequency images.
+            </p>
+
+        <br>
+        <h2 style="font-family:arial;">Part 6: "Level Sampling" with Mipmaps for Texture Mapping</h2>
+            <p style="font-family:arial;">
+              Level sampling interpolates the color for a given pixel between different resolutions levels. These levels make up
+              a Mipmap, invented by Lance Williams, in which each level is downsampled by 1/2 until we have a 1x1 pixel which is
+              just the average color for the image. We can level sample in three ways: L_ZERO, L_NEAREST, and L_LINEAR.
+              <br>
+              <br>
+              In order to compute the appropriate Mipmap level for a point (x,y), we first calculate the barycentric coordinates of the
+              points (x+1,y) and (x,y+1), passing the results to tri->color as p_dx_bary and p_dx_bary. We then use these weights to
+              calculate the uv coordinates, sp.p_dx_uv and sp.p_dy_uv, which will be passed into tex->sample(sp). Finally the difference
+              vectors, dx and dy, are calculated and scaled by the original image resolution's width and height. Now that we have dudx, dvdx,
+              dudy, and dvdy, we can plug it into the following formula, where D is the Mipmap level we are solving for:
+            </p>
+            <figure style="text-align:center;">
+              <img src="images/mipmap.png" alt="Part4" width="600px">
+            </figure>
+            <p style="font-family:arial;">
+              The L_ZERO method samples from the zero-th Mipmap, which is just the full resolution image. We can retrieve the color
+              by simply calling the specified pixel sampling method. For L_NEAREST, we compute the Mipmap level, round to the nearest
+              level, and then pass that level into the psm so we can access the correct MipLevel and its corresponding texels. Lastly for
+              L_LINEAR, we compute the level and get the colors for the adjacent MipLevels by floor(level) and ceil(level). Then we linearly
+              interpolate between col_above and col_below using the fractional offset, level - floor(level).
+              <br>
+              <br>
+              The following is a picture I took at the Chihuly Garden and Glass exhibit in Seattle.
+            </p>
+            <div>
+              <table style="width=100%;">
+                <tr>
+                  <td>
+                    <img src="images/part6_pnear_lzero.png" align="middle" width="500px"/>
+                    <figcaption style="font-family:arial;"align="middle">P_NEAREST, L_ZERO</figcaption>
+                  </td>
+                  <td>
+                    <img src="images/part6_pb_lzero.png" align="middle" width="500px"/>
+                    <figcaption style="font-family:arial;"align="middle">P_LINEAR, L_ZERO</figcaption>
+                  </td>
+                </tr>
+                <br>
+                <tr>
+                  <td>
+                    <img src="images/part6_pnear_lnear.png" align="middle" width="500px"/>
+                    <figcaption style="font-family:arial;"align="middle">P_NEAREST, L_NEAREST</figcaption>
+                  </td>
+                  <td>
+                    <img src="images/part6_pb_lzero.png" align="middle" width="500px"/>
+                    <figcaption style="font-family:arial;"align="middle">P_LINEAR, L_NEAREST</figcaption>
+                  </td>
+                </tr>
+              </table>
+            </div>
+            <p style="font-family:arial;">
+              Changing between the different pixel sampling methods does not hurt the speed because both methods do not require the use
+              of a for loop. Similarly, when sampling different MipLevels, getting the MipLevel only requires arithmetic given the correct
+              parameters and retrieving the color requires indexing. When using bilinear sampling, changing the level sampling from
+              zero -> nearest -> linear further blurs the image because the amount of times we average colors increases. When using
+              nearest-pixel sampling, changing the level sampling from zero -> nearest shows little change because we ignore all neighboring
+              pixels. There is slight change when the level sampling is linear because we are interpolating between two MipLevels. Speed is a big factor
+              when it comes to adjusting the numbers of samples per pixel. This is because we use a double for loop to iterate through
+              each pixel, and then we proceed with another double for loop to iterate through all the sub-pixels. As we increase the sample
+              rate, the amount of sub-pixels increases and thus it takes longer to loop through every single one. However, supersampling is a great
+              antialiasing technique to get rid of jaggies, and so while the program may run a little slower, it is a small price to pay
+              for a better looking, smoother, continuous image.
+            </p>
+
+        <br>
+        <h1 style="font-family:arial;text-align:center;">Section 3: Art Competition</h1>
+        <p style="font-family:arial;">
+            If you are not participating in the optional art competition, don't worry about this section!</p>
+        </p>
+
+        <br>
+        <h2 style="font-family:arial;">Part 7: Draw something interesting!</h2>
+
+        <br>
+        <div class="backtotop">
+          <button class="button">
+              <a href="#Top" class="button">Back to Top</a>
+          </button>
+        </div>
+        <br>
+        <br>
+
+    </body>
+</html>

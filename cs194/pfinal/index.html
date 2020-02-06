@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html>
+    <style>
+        body {
+          margin: 0px 125px;
+          background-color: rgb(240, 240, 240);
+        }
+        div {
+          text-align: center;
+        }
+        button {
+          background-color: #008080; /* teal */
+          border: none;
+          color: white;
+          padding: 16px 32px;
+          width: 200px;
+          text-align: center;
+          border-radius: 4px;
+          font-size: 16px;
+          margin: 4px 2px;
+          opacity: 0.6;
+          transition: 0.3s;
+          display: inline-block;
+          text-decoration: none;
+          cursor: pointer;
+          position:
+        }
+        button:hover {opacity: 1}
+        .backtotop {text-align: right;}
+        a {
+          text-decoration: none;
+          color: white;
+          display: block;
+        }
+        .link {color: blue}
+
+    </style>
+    <body>
+        <a name="top"></a>
+        <h3 class="name" style="font-family:arial;">CS194-26: Image Manipulation and Computational Photography Fall 2018<br>Maddie Pahati, cs194-26-abz</h3>
+
+        <h1 class="proj" style="font-family:arial; text-align:center;">Final Project</h1>
+
+        <div>
+          <button class="button">
+              <a href="#Part1" class="button">Vertigo Shot</a>
+          </button>
+          <button class="button">
+              <a href="#Part2" class="button">Fake Miniatures</a>
+          </button>
+        </div>
+
+        <br>
+        <h1 id="Part1" style="font-family:arial;text-align:center;">Vertigo Shot</h1>
+
+        <br>
+        <h2 style="font-family:arial;">Overview</h2>
+            <p style="font-family:arial;">
+              The Vertigo Shot, also known as the Dolly Zoom, is a reference to the famous scene in Hitchcock's Vertigo (1958).
+              I achieved the Dolly Zoom through two ways: zooming in while dollying out (such that the background compresses)
+              and zooming out while dollying in (such that the background expands). I made sure to keep the subject of the image relatively the
+              same size as I increased or decreased my distance to the subject.
+              For this project I used my Sony Alpha a6000 Mirrorless camera.
+              <br>
+              <br>
+              I had some difficulty with the third scene, which is an attempt to recreate Hitchcock's famous staircase dolly zoom at the Hotel Vertigo in
+              SF. Unfortunately I did not have the means to effectively dolly vertically, so I tried an alternative way by taking
+              the pictures at each floor. However, there is a significant amount of distance between each floor so the zoom looks
+              very disjoint.
+            </p>
+            <br>
+            <p style="font-family:arial;text-align:center;">
+               Basketball in the Backyard
+            </p>
+            <figure style="text-align:center;">
+              <img src="images/basketball1.jpg" alt="Basketball1" style="width:275px;height:183px;">
+              <img src="images/basketball2.jpg" alt="Basketball2" style="width:275px;height:183px;">
+              <img src="images/basketball3.jpg" alt="Basketball3" style="width:275px;height:183px;">
+              <img src="images/basketball4.jpg" alt="Basketball4" style="width:275px;height:183px;">
+            </figure>
+            <p style="font-family:arial;text-align:center;">
+               Lamp in the House
+            </p>
+            <figure style="text-align:center;">
+              <img src="images/lamp1.jpg" alt="Lamp1" style="width:275px;height:183px;">
+              <img src="images/lamp2.jpg" alt="Lamp2" style="width:275px;height:183px;">
+              <img src="images/lamp3.jpg" alt="Lamp3" style="width:275px;height:183px;">
+              <img src="images/lamp4.jpg" alt="Lamp4" style="width:275px;height:183px;">
+            </figure>
+            <p style="font-family:arial;text-align:center;">
+               Hotel Vertigo in SF
+            </p>
+            <figure style="text-align:center;">
+              <img src="images/vertigo1.jpg" alt="Vertigo1" style="width:275px;height:183px;">
+              <img src="images/vertigo2.jpg" alt="Vertigo2" style="width:275px;height:183px;">
+              <img src="images/vertigo3.jpg" alt="Vertigo3" style="width:275px;height:183px;">
+              <img src="images/vertigo4.jpg" alt="Vertigo4" style="width:275px;height:183px;">
+            </figure>
+
+
+        <h2 style="font-family:arial;">Bells & Whistles: gifs</h2>
+            <figure style="text-align:center;">
+                <a href="https://imgur.com/SBN6DnW"><img src="https://i.imgur.com/SBN6DnW.gif" title="source: imgur.com" style="width:600px;height:400px;"/></a>
+                <a href="https://imgur.com/vNkv5e2"><img src="https://i.imgur.com/vNkv5e2.gif" title="source: imgur.com" style="width:600px;height:400px;"/></a>
+                <a href="https://imgur.com/FFlQ7vy"><img src="https://i.imgur.com/FFlQ7vy.gif" title="source: imgur.com" style="width:600px;height:400px;"/></a>
+            </figure>
+
+
+        <br>
+        <div class="backtotop">
+          <button class="button">
+              <a href="#Top" class="button">Back to Top</a>
+          </button>
+        </div>
+
+        <br>
+        <h1 id="Part2" style="font-family:arial; text-align:center;">Fake Miniatures</h1>
+        <br>
+        <h2 style="font-family:arial;">Overview</h2>
+            <p style="font-family:arial;">
+                This project aimed to recreate the selective focus camera effect, a Tilt Shift, by selecting a focus plane and blurring the rest of the
+                image. The end result is a narrower depth of field and gives the illusion that one is really close to the subject. For my implementation,
+                I first started by creating a horizontal mask and used the following workflow:
+                <br>
+                &emsp;&emsp;- select a point of interest (the y coordinate will be used to create the horzontal mask with a default padding of 150 pixels above
+                and below the y coordinate)
+                <br>
+                &emsp;&emsp;- increase saturation of the image by 50%
+                <br>
+                &emsp;&emsp;- pass mask through a low pass filter
+                <br>
+                &emsp;&emsp;- in five iterations, recursively increase the size of the mask
+                <br>
+                &emsp;&emsp;&emsp;&emsp;- multiply mask by the image to get just the pixels within the focus plane
+                <br>
+                &emsp;&emsp;&emsp;&emsp;- invert the mask and multiply by the image to get everything except the focus plane
+                <br>
+                &emsp;&emsp;&emsp;&emsp;- apply a gaussian to the image that contains contains everything except the focus plane
+                <br>
+                &emsp;&emsp;&emsp;&emsp;- add focused part and blurred image together
+                <br>
+                The result is a saturated image with a toy-like feel where the image gets blurrier and blurrier as you get farther from the focus plane.
+
+            </p>
+            <br>
+            <p style="font-family:arial;text-align:center;">
+               Tossa de Mar
+               <br>
+               Photo taken by me
+            </p>
+            <figure style="text-align:center;">
+              <img src="images/spain.jpg" alt="Spain" style="width:375px;height:267px;">
+              <img src="images/spain_mask.jpg" alt="Spain Mask" style="width:375px;height:267px;">
+              <img src="images/spain_mini.jpg" alt="Spain Mini" style="width:750px;height:500px;">
+            </figure>
+            <p style="font-family:arial;text-align:center;">
+               Wondercon
+               <br>
+               Photo taken by me
+            </p>
+            <figure style="text-align:center;">
+              <img src="images/wondercon.jpg" alt="Wondercon" style="width:500px;height:375px;">
+              <img src="images/wondercon_mini.jpg" alt="Wondercon Mini" style="width:500px;height:375px;">
+            </figure>
+            <p style="font-family:arial;text-align:center;">
+               Boats in Tossa de Mar
+               <br>
+               Photo taken by me
+            </p>
+            <figure style="text-align:center;">
+              <img src="images/boats.jpg" alt="Boats" style="width:500px;height:375px;">
+              <img src="images/boats_mini.jpg" alt="Boats Mini" style="width:500px;height:375px;">
+            </figure>
+
+        <br>
+        <h2 style="font-family:arial;">Bells & Whistles: Complex DOF Regions</h2>
+            <p style="font-family:arial;">
+               I implemented a way to have the user identify the amount of points they would like to use to create a complex mask.
+            </p>
+            <p style="font-family:arial;text-align:center;">
+               Alpine Climb
+               <a class='link' href="https://www.pexels.com/photo/two-man-hiking-on-snow-mountain-869258/">source</a>
+            </p>
+            <figure style="text-align:center;">
+              <img src="images/alpine.jpg" alt="Alpine" style="width:375px;height:267px;">
+              <img src="images/alpine_mask.jpg" alt="Alpine Mask" style="width:375px;height:267px;">
+              <img src="images/alpine_mini.jpg" alt="Alpine Mini" style="width:750px;height:500px;">
+            </figure>
+            <p style="font-family:arial;text-align:center;">
+               Cable Car
+               <a class='link' href="https://www.pexels.com/photo/group-of-people-going-up-to-mountain-1525662/">source</a>
+            </p>
+            <figure style="text-align:center;">
+              <img src="images/cablecar.jpg" alt="Cable Car" style="width:375px;height:267px;">
+              <img src="images/cablecar_mask.jpg" alt="Cable Car Mask" style="width:375px;height:267px;">
+              <img src="images/cablecar_mini.jpg" alt="Cable Car Mini" style="width:750px;height:500px;">
+            </figure>
+            <p style="font-family:arial;text-align:center;">
+               Castle
+               <a class='link' href="https://www.pexels.com/photo/architecture-building-castle-city-301469/">source</a>
+            </p>
+            <figure style="text-align:center;">
+              <img src="images/castle.jpg" alt="Castle" style="width:500px;height:375px;">
+              <img src="images/castle_mini.jpg" alt="Castle Mini" style="width:500px;height:375px;">
+            </figure>
+            <p style="font-family:arial;text-align:center;">
+               Hotel in Hawaii
+               <br>
+               Photo taken by me
+            </p>
+            <figure style="text-align:center;">
+              <img src="images/hotel.jpg" alt="Hotel" style="width:500px;height:375px;">
+              <img src="images/hotel_mini.jpg" alt="Hotel Mini" style="width:500px;height:375px;">
+            </figure>
+            <p style="font-family:arial;text-align:center;">
+               Lighthouse in Hawaii
+               <br>
+               Photo taken by me
+            </p>
+            <figure style="text-align:center;">
+              <img src="images/lighthouse.jpg" alt="Lighthouse" style="width:500px;height:375px;">
+              <img src="images/lighthouse_mini.jpg" alt="Lighthouse Mini" style="width:500px;height:375px;">
+            </figure>
+
+
+        <br>
+        <h2 style="font-family:arial;">Bells & Whistles: Stop Motion</h2>
+            <p style="font-family:arial;">
+               Finally, I took a series of 30 photos of Union Square from the Cheesecake Factory terrace and then blurred each image with the same
+               point of interest to create a fake stop motion animation.
+            </p>
+            <figure style="text-align:center;">
+              <a href="https://imgur.com/WalxDFi"><img src="https://i.imgur.com/WalxDFi.gif" title="source: imgur.com" style="width:1080px;height:637px;"/></a>
+            </figure>
+
+
+
+        <br>
+        <h2 style="font-family:arial;">Reflection</h2>
+            <p style="font-family:arial;">
+              As a film major, it was really fun to actually perform a dolly zoom, especially using still photos. Through both these projects, I
+              learned a lot more in detail about camera angles and how the distance between the lens and the subject affect the field of view. And
+              as a double major in math, this class taught me so much about the mathematical reasoning behind many functions I use in Photoshop,
+              and I learned a lot about graphics in general. Overall, I think I'll become a better photographer (both in the act of shooting a photo
+              and post-production) because of this class. Thanks for a fun and challenging semester!
+            </p>
+
+        <br>
+        <div class="backtotop">
+          <button class="button">
+              <a href="#Top" class="button">Back to Top</a>
+          </button>
+        </div>
+        <br>
+        <br>
+
+    </body>
+</html>

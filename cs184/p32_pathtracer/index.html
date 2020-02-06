@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html>
+    <style>
+        body {
+          margin: 0px 125px;
+          background-color: rgb(240, 240, 240);
+          disply:inline-block;
+        }
+        div {
+          /* text-align: center; */
+          disply:inline-block;
+        }
+        code {
+          font-size: 15px;
+        }
+        button {
+          background-color: #008080; /* teal */
+          border: none;
+          color: white;
+          padding: 16px 32px;
+          width: 175px;
+          text-align: center;
+          border-radius: 4px;
+          font-size: 16px;
+          margin: 4px 2px;
+          opacity: 0.6;
+          transition: 0.3s;
+          display: inline-block;
+          text-decoration: none;
+          cursor: pointer;
+          position:
+        }
+        button:hover {opacity: 1}
+        .backtotop {text-align: right;}
+        a {
+          text-decoration: none;
+          color: white;
+          display: block;
+        }
+        .link {
+          color: blue;
+          display: inline;
+        }
+
+    </style>
+    <body>
+        <a name="top"></a>
+        <h3 class="name" style="font-family:arial;">CS184: Computer Graphics and Imaging, Spring 2019<br>Maddie Pahati, cs184-abo</h3>
+
+        <h1 class="proj" style="font-family:arial; text-align:center;">Project 3-2: Pathtracer II</h1>
+
+        <div align="middle">
+          <button class="button">
+              <a href="#Part1" class="button">Part 1</a>
+          </button>
+          <button class="button">
+              <a href="#Part2" class="button">Part 2</a>
+          </button>
+          <button class="button">
+              <a href="#Part3" class="button">Part 3</a>
+          </button>
+          <button class="button">
+              <a href="#Part4" class="button">Part 4</a>
+          </button>
+        </div>
+
+        <br>
+        <h2 style="font-family:arial;">Overview</h2>
+            <p style="font-family:arial;">
+              This projects builds upon Project 3-1 by adding more features to our pathtracer such as rendering more complex materials,
+              providing environment lighting, and implementing depth of field effects.
+            </p>
+
+        <br>
+        <h1 id="Part1" style="font-family:arial;text-align:center;">Part 1: Mirror and Glass Materials</h1>
+          <figure style="text-align:center;">
+            <img src="images/p1a_dragon_m5_s1024_l16.png" alt="Dragon" width="300px">
+            <img src="images/p1a_lucy_m5_s1024_l16.png" alt="Lucy" width="300px">
+            <img src="images/p1a_spheres_m5_s1024_l16.png" alt="Spheres" width="300px">
+          </figure>
+            <p style="font-family:arial;">
+              In order to simulate mirror and glass materials, we first had to implement reflection and refraction. Reflection
+              is simply a transformation, mainly a reflection in 3D space about the normal (0,0,1) such that the z-axis points along
+              the normal vector. With the <code>reflect</code> helper function now available, rendering mirror materials is now just a
+              matter of setting the <code>pdf</code> to 1, calling <code>reflect()</code>, and returning the quotient of the reflectance
+              and the absolute value of <code>cos(wi)</code>.
+              <br>
+              <br>
+              Glass materials require a bit more work. First we implement <code>refraction()</code>, where we use Snell's equations
+              and the index of refraction to refract the <code>wo</code> direction and then store the result in <code>wi</code>. However,
+              it is possible that Snell's law can give us a negative number under the square root. This means we have total internal
+              reflection and determine that refraction does not occur. In this case, we return false without assigning <code>wi</code>.
+              When sampling the glass BSDF, we must also keep track of whether or not we have total internal reflection. If we do,
+              we reflect. If not, we compute the Fresnel term using Schlick's approximation to find the reflection coefficient <code>R</code>
+              and use <code>coin_flip(R)</code> to
+              determine if we either reflect or refract.
+              <br>
+              <br>
+              Now we can have images with mirror and glass! The following images are rendered with 64 samples per pixel and 4 light rays.
+            </p>
+            <div align="middle">
+              <table style="width=100%;">
+                <tr>
+                  <td>
+                    <img src="images/p1_spheres_m0.png" align="middle" width="400px"/>
+                    <figcaption style="font-family:arial;"align="middle">Depth 0</figcaption>
+                  </td>
+                  <td>
+                    <img src="images/p1_spheres_m1.png" align="middle" width="400px"/>
+                    <figcaption style="font-family:arial;"align="middle">Depth 1</figcaption>
+                  </td>
+                </tr>
+                <br>
+                <tr>
+                  <td>
+                    <img src="images/p1_spheres_m2.png" align="middle" width="400px"/>
+                    <figcaption style="font-family:arial;"align="middle">Depth 2</figcaption>
+                  </td>
+                  <td>
+                    <img src="images/p1_spheres_m3.png" align="middle" width="400px"/>
+                    <figcaption style="font-family:arial;"align="middle">Depth 3</figcaption>
+                  </td>
+                </tr>
+                <br>
+                <tr>
+                  <td>
+                    <img src="images/p1_spheres_m4.png" align="middle" width="400px"/>
+                    <figcaption style="font-family:arial;"align="middle">Depth 4</figcaption>
+                  </td>
+                  <td>
+                    <img src="images/p1_spheres_m5.png" align="middle" width="400px"/>
+                    <figcaption style="font-family:arial;"align="middle">Depth 5</figcaption>
+                  </td>
+                </tr>
+              </table>
+            </div>
+            <figure style="text-align:center;">
+              <img src="images/p1_spheres_m100.png" alt="P1 Depth 100" width="400px">
+              <figcaption style="font-family:arial;"align="middle">Depth 100</figcaption>
+            </figure>
+            <p style="font-family:arial;">
+              <!-- -Point out the new multibounce effects that appear in each image
+              -Explain how these bounce numbers relate to the particular effects that appear.
+              0 - zero_bounce_radiance, emitted lights
+              1 - one bounce, direct lighting, materials aren't seen
+              2 - reflectance
+              3 - refraction inside sphere
+              4 - refraction outside sphere
+              5 - reflection back up to glass sphere and onto wall
+              <br>
+              <br> -->
+              Depth 0: There are no rays being cast. Only <code>zero_bounce_radiance</code> is being called, and we just see the
+              emitted lights.
+              <br>
+              <br>
+              Depth 1: We cast one ray, which is essentially a call to <code>one_bounce_radiance</code> so we only have direct
+              lighting here and have yet to have any reflectance or refraction on the spheres.
+              <br>
+              <br>
+              Depth 2: At two bounces, reflectance kicks in. As a result, with two rays
+              cast, the mirror sphere reflects the walls, and the ceiling is now illuminated. Since there has yet to be any refraction,
+              the glass sphere has only slight reflectance. These new effects -- global illumination and the slight
+              reflection of the glass sphere -- have yet to be featured in the mirror sphere.
+              <br>
+              <br>
+              Depth 3: Now we have ceiling illumination and the slight reflection of the glass sphere reflected in the mirror sphere.
+              The results of refracting are also now visible in the glass sphere.
+              <br>
+              <br>
+              Depth 4: The refraction effects of the glass sphere are reflected in the mirror sphere. There is also some light that
+              appeared under the glass sphere which results from refraction when <code>wo</code> exits the sphere.
+              <br>
+              <br>
+              Depth 5: With one more additional bounce, the light from the glass sphere reflected from the floor back up to the
+              glass sphere. This light is also reflected in the mirror ball and on the blue wall.
+              <br>
+              <br>
+              Depth 100: After five bounces, we can say that the mirror and glass spheres have converged. For after 100 bounces, although
+              the image looks slightly brighter, it looks very similar to the image rendered with five bounces.
+            </p>
+
+
+        <br>
+        <div class="backtotop">
+          <button class="button">
+              <a href="#Top" class="button">Back to Top</a>
+          </button>
+        </div>
+
+        <br>
+        <h1 id="Part2" style="font-family:arial; text-align:center;">Part 2: Microfacet Material</h1>
+        <h2 style="font-family:arial;">Microfacet BRDF</h2>
+            <p style="font-family:arial;">
+              In addition to mirror and glass, we can also render Microfacet materials. Specifically, we will implement isotropic
+              rough conductors that only reflect such as copper, gold, aluminum, and silver. We begin by evaluating the BRDF using
+              the following function:
+            </p>
+            <figure style="text-align:center;">
+              <img src="images/p2a_2BRDF.png" alt="BRDF 2" width="300px">
+            </figure>
+            <p style="font-family:arial;">
+              As listed in the spec, <code>F</code> is the Fresnel term, <code>G</code> is the shadowing-masking term, <code>D</code>
+              is the normal distribution function (NDF), <code>n</code> is the macro surface normal (0,0,1), and <code>h</code> is the
+              half-vector. I calculated <code>h</code> to be the sum of <code>wo</code> and <code>wi</code> divided by the magnitude of
+              this sum.
+              <br>
+              <br>
+              <code>G()</code> has graciously already been pre-written for us, so all the modifications will be in the <code>F()</code>
+              and <code>D()</code> functions.
+            </p>
+            <p style="font-family:arial;">
+              The NDF is found using the Beckmann distribution:
+            </p>
+            <figure style="text-align:center;">
+              <img src="images/p2a_3NDF.png" alt="NDF" width="250px">
+            </figure>
+            <p style="font-family:arial;">
+              where <code>alpha</code> is the roughness of the macro surface and <code>theta_h</code> is the angle between <code>h</code>
+              and <code>n</code>.
+              <br>
+              <br>
+              The Fresnel Term is rather different in this situation than what we have previous calculated because here we are using
+              air-conductor interfaces which are wavelength-dependent. Previously, we were solving for air-dialectric interfaces,
+              which are not wavelength-dependent. As a result we modify our Fresnel term computation using the following approximation:
+            </p>
+            <figure style="text-align:center;">
+              <img src="images/p2a_4fresnel.png" alt="Fresnel" width="400px">
+            </figure>
+            <p style="font-family:arial;">
+              where <code>n</code> and <code>k</code> represent indices of refraction for conductors.
+            </p>
+
+        <h2 style="font-family:arial;">Importance Sampling</h2>
+            <p style="font-family:arial;">
+              Here we can importance sample the Microfacet BSDF using pdfs <code>pdf_theta</code> and <code>pdf_phi</code> that resemble
+              the Beckmann distribution, which will give us less noise in our images. This will overwrite the original cosine hemisphere
+              sampling that was used to sample the Microfacet BRDF, which works for importance sampling diffuse BRDFs but not Beckmann distribution.
+              To begin, we find <code>pdf_theta</code> and <code>pdf_phi</code>:
+            </p>
+            <figure style="text-align:center;">
+              <img src="images/p2a_5impsamp.png" alt="Importance Sampling" width="300px">
+            </figure>
+            <p style="font-family:arial;">
+              To sample <code>theta_h</code> and <code>phi_h</code> according to the pdfs, we use the inversion method, in which the process
+              results in:
+            </p>
+            <figure style="text-align:center;">
+              <img src="images/p2a_6impsimplif.png" alt="Importance Sampling Simplification" width="300px">
+            </figure>
+            <p style="font-family:arial;">
+              where <code>(r1, r2)</code> is a randomly sampled point in [0, 1).
+              <br>
+              <br>
+              Then we can combine <code>theta_h</code> and <code>phi_h</code> to get the sampled microfacet normal <code>h</code> and its pdf.
+              <code>h</code> is found by converting from spherical coordinates using <code>theta_h</code> and <code>phi_h</code> to
+              cartesian coordinates and the pdf w.r.t. solid angle is calculated using the following formula:
+            </p>
+            <figure style="text-align:center;">
+              <img src="images/p2a_7pdfsolidangle.png" alt="Solid Angle" width="250px">
+            </figure>
+            <p style="font-family:arial;">
+              To get the final pdf of <code>wi</code> w.r.t. solid, we calculate using:
+            </p>
+            <figure style="text-align:center;">
+              <img src="images/p2a_8pdfsolidangle.png" alt="Final" width="200px">
+            </figure>
+
+        <h2 style="font-family:arial;">Changing alpha</h2>
+            <p style="font-family:arial;">
+              The following images are rendered with 128 samples per pixel, 1 light per sample, and 5 bounces.
+            </p>
+            <div align="middle">
+              <table style="width=100%;">
+                <tr>
+                  <td>
+                    <img src="images/p2b_dragon_alpha0.005.png" align="middle" width="400px"/>
+                    <figcaption style="font-family:arial;"align="middle">alpha 0.005</figcaption>
+                  </td>
+                  <td>
+                    <img src="images/p2b_dragon_alpha0.05.png" align="middle" width="400px"/>
+                    <figcaption style="font-family:arial;"align="middle">alpha 0.05</figcaption>
+                  </td>
+                </tr>
+                <br>
+                <tr>
+                  <td>
+                    <img src="images/p2b_dragon_alpha0.25.png" align="middle" width="400px"/>
+                    <figcaption style="font-family:arial;"align="middle">alpha 0.25</figcaption>
+                  </td>
+                  <td>
+                    <img src="images/p2b_dragon_alpha0.5.png" align="middle" width="400px"/>
+                    <figcaption style="font-family:arial;"align="middle">alpha 0.5</figcaption>
+                  </td>
+                </tr>
+              </table>
+            </div>
+            <p style="font-family:arial;">
+              <!-- Describe the differences between different images. -->
+              <!-- The smaller alpha is, the smoother the macro surface will be. In other words, the macro surface tends to be
+              diffuse when alpha is large and glossy when alpha is small. -->
+              When alpha is small, the dragon is smoother, shinier, and darker in color. As alpha increases, the dragon
+              loses its polish, becoming more matte and rough but also becoming brighter and more golden in color. This is because
+              <code>alpha</code> represents the roughness of the macro surface, so it follows, as mentioned in the spec, that the
+              microsurface of the dragon will tend to be diffuse when alpha is large and glossy when alpha is small.
+            </p>
+
+            <h2 style="font-family:arial;">Cosine Hemisphere Sampling vs. Importance Sampling</h2>
+            <p style="font-family:arial;">
+              The following two images were rendered at 64 samples per pixel, 1 sample per light, and 5 bounces.
+            </p>
+            <div align="middle">
+              <table style="width=100%;">
+                <tr>
+                  <td>
+                    <img src="images/p2c_bunny_hem.png" align="middle" width="400px"/>
+                    <figcaption style="font-family:arial;"align="middle">Cosine Hemisphere Sampling</figcaption>
+                  </td>
+                  <td>
+                    <img src="images/p2c_bunny_imp.png" align="middle" width="400px"/>
+                    <figcaption style="font-family:arial;"align="middle">Importance Sampling</figcaption>
+                  </td>
+                </tr>
+              </table>
+            </div>
+            <p style="font-family:arial;">
+              Importance sampling better captures the bunny's copper material; however, as expected, cosine hemisphere sampling
+              does not. While cosine hemisphere sampling does capture the highlights and shadows pretty well, it fails to
+              effectively capture the variance in the reflectance in between the light and dark extremes. As a result, cosine
+              hemisphere sampling leaves more visible gaps and returns a noisier and darker bunny.
+            </p>
+
+            <br>
+            <h2 style="font-family:arial;">Titatium</h2>
+            <p style="font-family:arial;">
+              I used this <a class="link" href="https://refractiveindex.info/" style="font-family:arial;">website</a> to find the
+              following <code>eta</code> and <code>k</code> values for each RGB channel for Titanium:
+              <br>
+              <br>
+              &emsp;&emsp;&emsp;&emsp;<code>eta: 2.6640 2.5400 2.3075</code>
+              <br>
+              &emsp;&emsp;&emsp;&emsp;<code>k: 3.7080 3.4300 3.0850</code>
+
+
+            </p>
+            <figure style="text-align:center;">
+              <img src="images/p2d_dragon_titanium.png" alt="Titanium Dragon" width="400px">
+              <figcaption style="font-family:arial;"align="middle">Titanium Dragon</figcaption>
+            </figure>
+
+        <br>
+        <div class="backtotop">
+          <button class="button">
+              <a href="#Top" class="button">Back to Top</a>
+          </button>
+        </div>
+
+
+        <br>
+        <h1 id="Part3" style="font-family:arial; text-align:center;">Part 3: Environment Light</h1>
+            <p style="font-family:arial;">
+              We now expand our light effects from direct lighting and global illumination to include infinite environment lighting
+              which lights an object from all directions on the sphere.
+              <br>
+              <br>
+              Our first task is to integrate the texture maps, which we can do by properly transforming the ray's direction into (x,y)
+              coordinates and then use bilinear interpolation on (x,y) to sample the appropriate Spectrum from <code>envMap</code>.
+            </p>
+
+        <h2 style="font-family:arial;">Uniform Sampling</h2>
+            <p style="font-family:arial;">
+              To make sure everything is working as it should, we first implement uniform direction sampling. We begin with a randomly
+              sampled direction on the sphere, converting the direction to (theta, phi) coordinates, and then converting again into (x,y) coordinates. We also make
+              sure to fill in the argument parameters, setting <code>pdf</code> to the uniform probability w.r.t. solid angle <code>(1/4*PI)</code>,
+              <code>distToLight</code> to <code>INF_D</code>, and <code>wi</code> to the randomly sampled direction. To get the radiance value
+              at that location, we use bilinear interpolation on the converted (x,y) coordinates.
+            </p>
+
+        <h2 style="font-family:arial;">Importance Sampling</h2>
+            <p style="font-family:arial;">
+              Now we can implement the more advanced method, importance sampling, to reduce the noise in images. Here importance sampling
+              works to increase the sampling in the directions that point towards bright light sources. These directions have the greatest
+              incoming radiance.
+              <br>
+              <br>
+              As described in the spec, we compute the pdf of each pixel in the environment map that is based on the total flux passing
+              through the solid angle it represents which we can then index into to get the radiance and pdf values. Which row we sample in the
+              environment map depends on the marginal distribution <code>p(y)</code>, and which x-value we sample depends on the conditional
+              distribution <code>p(x|y)</code>.
+              <br>
+              <br>
+              Computing the pdfs has been gifted to us, so all that remains is to normalize the <code>pdf_envmap</code> by dividing each value
+              by the sum total illumination. We then proceed to compute the marginal distribution. As we iterate through all the pixels in the
+              <code>envMap</code>, we sum all the pdfs for a given row. This sum is the marginal density <code>p(j)</code> for each y-value which
+              I keep track in another array (<code>marginal_densities[j] = p(j)</code>) to help me when computing the conditional densities.
+              To get the cumulative marginal distribution which is what we want, as we are iterating through all the pixels, we accumulate the
+              <code>p(j)</code>'s in a variable <code>accumulated_sum</code> (<code>accumulated_sum += p(j)</code>) and set
+              <code>marginal_y = accumulated_sum</code>.
+              <br>
+              <br>
+              Finally, we compute the conditional distribution. My approach to computing the conditional distribution was similar to
+              how I calculated the marginal distribution. First, we calculate the conditional density <code>p(x|y)</code> which equals
+              <sup><code>p(x,y)</code></sup>&frasl;<sub><code>p(y)</code></sub> by Bayes' rule. When iterating over every pixel in
+              <code>envMap</code>, this translates to the conditional density <code>p(i|j)</code> which equals the pdf value at
+              <code>p(i,j)</code> divided by the marginal density that was calculated previously, <code>p(j)</code>. Now that we have
+              the conditional density <code>p(i|j)</code> for each i given j, we want the cumulative conditional distribution.
+              We accumulate the <code>p(i|j)</code>'s in a variable <code>sum_row</code> (<code>sum_row += p(i|j)</code>) and set
+              <code>conds_y[w*j+i] = sum_row</code>. <code>sum_row</code> resets to <code>0</code> every time we hit a new <code>j</code>.
+              <br>
+              <br>
+              Successfully initializing the probability distribution gives us the following colorful debug image:
+            </p>
+            <figure style="text-align:center;">
+              <img src="images/p3b_probability_debug.png" alt="Probability Debug" width="700px">
+            </figure>
+            <p style="font-family:arial;">
+              Now we can index into the <code>envMap</code> using our computed probabilities. We first sample the row of the <code>envMap</code>.
+              Using the <code>std::upper_bound()</code> function, this y coordinate is calculated by iterating through <code>marginal_y</code> and
+              finding the first value that is greater than a random number on [0,1]^2. We then subtract the value by <code>marginal_y</code> to get
+              the appropriate index. Next we sample the pixel within the computed row. Similarly, we use <code>std::upper_bound()</code>. The x
+              coordinate is found by iterating through <code>conds_y</code> at the specified row and finding the first value that is greater than a
+              random number also on [0,1]^2. We then subtract by <code>conds_y</code> at that row to get the index. Using <code>std::upper_bound()</code>
+              in this way is analagous to using the inverse method.
+              <br>
+              <br>
+              Given (x,y), we can now fill in the argument parameters, setting <code>wi</code> to the converted (x,y)-->(theta,phi)-->dir
+              vector, <code>distToLight</code> to <code>INF_D</code>, and <code>pdf</code> to the <code>envMap</code> value at (x,y)
+              multiplied by the factor <sup><code>wh</code></sup>&frasl;<sub><code>2*PI*PI*sin(theta)</code></sub>. Finally, we return the radiance
+              after using bilinear interpolation on the (x,y) coordinates.
+              <br>
+              <br>
+              Now we can render with more realistic lighting! I used the field.exr map for the following images, which were rendered with 4
+              samples per pixel, 64 samples per light, and 5 bounces.
+            </p>
+            <figure style="text-align:center;">
+              <img src="images/p3a_field.jpg" alt="Field" width="700px">
+            </figure>
+
+            <div align="middle">
+              <table style="width=100%;">
+                <tr>
+                  <td>
+                    <img src="images/p3c_bunny_unlit_unif_crop.png" align="middle" width="400px"/>
+                    <figcaption style="font-family:arial;"align="middle"><code>bunny_unlit.dae</code> Uniform Sampling</figcaption>
+                  </td>
+                  <td>
+                    <img src="images/p3c_bunny_unlit_imp_crop.png" align="middle" width="400px"/>
+                    <figcaption style="font-family:arial;"align="middle"><code>bunny_unlit.dae</code> Importance Sampling</figcaption>
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <img src="images/p3d_bunny_cu_unif_crop.png" align="middle" width="400px"/>
+                    <figcaption style="font-family:arial;"align="middle"><code>bunny_microfacet_cu_unlit.dae</code> Uniform Sampling</figcaption>
+                  </td>
+                  <td>
+                    <img src="images/p3d_bunny_cu_imp_crop.png" align="middle" width="400px"/>
+                    <figcaption style="font-family:arial;"align="middle"><code>bunny_microfacet_cu_unlit.dae</code> Importance Sampling</figcaption>
+                  </td>
+                </tr>
+              </table>
+            </div>
+            <p style="font-family:arial;">
+              As we can see (more clearly in <code>bunny_microfacet_cu_unlit</code> than <code>bunny_unlit</code>), the noise has reduced with
+              importance sampling. There is still visible noise for importance sampling at these sampling rates, but we can observe that there
+              is less noise in the highlights of both bunnies but more noise in the darker areas. This is because of our bias sampling of the
+              pdfs. We want to sample more where there's more incident light, so the pdfs are greater in the highlights whereas the pdfs are a lot
+              lower in the more shadowy areas.
+            </p>
+
+        <br>
+        <div class="backtotop">
+          <button class="button">
+              <a href="#Top" class="button">Back to Top</a>
+          </button>
+        </div>
+
+        <br>
+        <h1 id="Part4" style="font-family:arial; text-align:center;">Part 4: Depth of Field</h1>
+            <p style="font-family:arial;">
+              What objects are in sharp focus versus what objects are blurred are determined by the depth of field. We can play with the focus
+              of our camera by simulating a thin lens.
+              <br>
+              <br>
+              Before implementing this part, we have been using an ideal pin-hole camera which captures an image where everything is in focus.
+              Of course, this is the ideal situation because we cannot see in complete focus. Real cameras and human eyes more closely represent
+              a lens model with finite apertures and focal distance limits. Objects become in sharp focus if they are within a plane that is at
+              <code>focalDistance</code> away from the lens and blurred otherwise.
+            </p>
+
+          <h2 style="font-family:arial;">Generating Rays for Thin Lens</h2>
+            <p style="font-family:arial;">
+              Here is the scene in camera space:
+            </p>
+            <figure style="text-align:center;">
+              <img src="images/p4a_thinlens.png" alt="Thin Lens" width="500px">
+              <figcaption style="font-family:arial;"align="middle">thin lens</figcaption>
+            </figure>
+            <p style="font-family:arial;">
+              In order to generate a ray, we need to find the point in focus, <code>pFocus</code>, and the point on the thin lens,
+              <code>pLens</code>. To get <code>pLens</code>, we uniformly sample the disk representing the lens using the parameters
+              <code>rndR</code> and <code>rndTheta</code>. To find <code>pFocus</code>, we notice that <code>pFocus</code> is the
+              intersection between the ideal pin-hole camera ray direction (the red segment), the ray direction produced by the thin
+              lens (the blue segment), and the plane of focus. Since all rays from the same point on the image plane will converge to the
+              same point in focus, regardless of where they pass through the lens, and the ray passing though the lens' center will not
+              change direction, we can compute the intersection of the red segment and the plane of focus to determine <code>pFocus</code>.
+              <br>
+              <br>
+              The ray represented by the red segment was computed in Project 3-1, so I copied my code and modified it such that the ray
+              direction is not transformed into world coordinates and negated. Calculating <code>pFocus</code> is now a means of multiplying
+              the ray direction by <code>-focalDistance</code>.
+              <br>
+              <br>
+              We can now generate the ray that has an origin of <code>pLens</code> and a direction of (<code>pFocus-pLens</code>) after
+              transforming from camera to world coordinates and offsetting the origin by <code>pos</code>. Now we can play around with the
+              focus to get some cool depth of field effects!
+            </p>
+            <h2 style="font-family:arial;">"Focus Stack"</h2>
+            <p style="font-family:arial;">
+              The following images were rendered at 64 samples per pixel, 4 samples per light, max ray depth equal to 8, and a fixed aperture
+              size of 0.25. As the focal distance decreases, objects closer to the camera become more in focus while objects farther away
+              are blurred.
+            </p>
+            <div align="middle">
+              <table style="width=100%;">
+                <tr>
+                  <td>
+                    <img src="images/p4b_dragon_b0.25_d2.1.png" align="middle" width="400px"/>
+                    <figcaption style="font-family:arial;"align="middle">focalDistance = 2.1</figcaption>
+                  </td>
+                  <td>
+                    <img src="images/p4b_dragon_b0.25_d2.3.png" align="middle" width="400px"/>
+                    <figcaption style="font-family:arial;"align="middle">focalDistance = 2.3</figcaption>
+                  </td>
+                </tr>
+                <br>
+                <tr>
+                  <td>
+                    <img src="images/p4b_dragon_b0.25_d2.5.png" align="middle" width="400px"/>
+                    <figcaption style="font-family:arial;"align="middle">focalDistance = 2.5</figcaption>
+                  </td>
+                  <td>
+                    <img src="images/p4b_dragon_b0.25_d2.7.png" align="middle" width="400px"/>
+                    <figcaption style="font-family:arial;"align="middle">focalDistance = 2.7</figcaption>
+                  </td>
+                </tr>
+              </table>
+            </div>
+            <h2 style="font-family:arial;">Changing Aperture</h2>
+            <p style="font-family:arial;">
+              These images were rendered at 64 samples per pixel, 4 samples per light, max ray depth equal to 8, and a fixed
+              focal distance of 2.1. As seen below, shrinking the aperture results in a sharper image. If the aperture size is <code>0</code>,
+              the entire image is focus.
+            </p>
+            <div align="middle">
+              <table style="width=100%;">
+                <tr>
+                  <td>
+                    <img src="images/p4c__dragon_b0.0_d2.1.png" align="middle" width="400px"/>
+                    <figcaption style="font-family:arial;"align="middle">aperture = 0.0</figcaption>
+                  </td>
+                  <td>
+                    <img src="images/p4c__dragon_b0.083_d2.1.png" align="middle" width="400px"/>
+                    <figcaption style="font-family:arial;"align="middle">aperture = 0.083333</figcaption>
+                  </td>
+                </tr>
+                <br>
+                <tr>
+                  <td>
+                    <img src="images/p4c_dragon_b0.16_d2.1.png" align="middle" width="400px"/>
+                    <figcaption style="font-family:arial;"align="middle">aperture = 0.166666</figcaption>
+                  </td>
+                  <td>
+                    <img src="images/p4c_dragon_b0.25_d2.1.png" align="middle" width="400px"/>
+                    <figcaption style="font-family:arial;"align="middle">aperture = 0.25</figcaption>
+                  </td>
+                </tr>
+              </table>
+            </div>
+
+
+        <br>
+        <div class="backtotop">
+          <button class="button">
+              <a href="#Top" class="button">Back to Top</a>
+          </button>
+        </div>
+        <br>
+        <br>
+
+    </body>
+</html>

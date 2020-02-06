@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html>
+    <style>
+        body {
+          margin: 0px 125px;
+          background-color: rgb(240, 240, 240);
+        }
+        div {
+          text-align: center;
+        }
+        table {
+          margin: 0 auto; /* or margin: 0 auto 0 auto */
+        }
+        button {
+          background-color: #008080; /* teal */
+          border: none;
+          color: white;
+          padding: 16px 32px;
+          width: 175px;
+          text-align: center;
+          border-radius: 4px;
+          font-size: 16px;
+          margin: 4px 2px;
+          opacity: 0.6;
+          transition: 0.3s;
+          display: inline-block;
+          text-decoration: none;
+          cursor: pointer;
+          position:
+        }
+        button:hover {opacity: 1}
+        .backtotop {text-align: right;}
+        .link {
+          color: blue;
+          display: inline-block
+        }
+        a {
+          text-decoration: none;
+          color: white;
+          display: block;
+        } */
+
+
+    </style>
+    <body>
+        <a name="top"></a>
+        <h3 class="name" style="font-family:arial;">CS184: Computer Graphics and Imaging, Spring 2019<br>Maddie Pahati, cs184-abo</h3>
+
+        <h1 class="proj" style="font-family:arial; text-align:center;">Project 2: Mesh Editor</h1>
+
+        <figure style="text-align:center;">
+          <img src="images/p6_cow_all.png" alt="Cow" width="800px">
+        </figure>
+
+        <div>
+          <button class="button">
+              <a href="#Part1" class="button">Section 1</a>
+          </button>
+          <button class="button">
+              <a href="#Part2" class="button">Section 2</a>
+          </button>
+          <!-- <button class="button">
+              <a href="#Part3" class="button">Section 3</a>
+          </button> -->
+        </div>
+
+        <br>
+        <h2 style="font-family:arial;">Overview</h2>
+            <p style="font-family:arial;">
+              This project aimed to implement various aspects of geometric modeling to create a tool that takes in basic
+              COLLADA mesh files which we can then edit. To successfully build this tool, we implemented Bezier curves and
+              surfaces de Casteljau's algorithms, half-edge flips and splits, and loop subdivision for mesh upsampling.
+            </p>
+
+        <br>
+        <h1 id="Part1" style="font-family:arial;text-align:center;">Section 1: Bezier Curves and Surfaces</h1>
+
+        <br>
+        <h2 style="font-family:arial;">Part 1: Bezier Curves with 1D de Casteljau Subdivision</h2>
+            <p style="font-family:arial;">
+              To create Bezier curves, we use de Casteljau's algorithm to evaluate a set of control points which output a
+              single point for evaluation. In the first step (or level), given n control points and a value t, we iterate through all
+              the points to get a set of (n-1) intermediate control points by evaluating the formula: p' = (1-t)p0 + tp1. In the
+              next step, we repeat this process except we start with (n-1) control points and output (n-2) intermediate
+              control points. This process is repeated until we have a single evaluated point.
+              <br>
+              <br>
+              Below are the steps of an evaluated Bezier Curve with six control points:
+            </p>
+
+            <div>
+              <table style="width=100%;">
+                <tr>
+                  <td>
+                    <img src="images/p1_eval1.png" align="middle" width="500px"/>
+                    <figcaption style="font-family:arial;"align="middle">Level 0</figcaption>
+                  </td>
+                  <td>
+                    <img src="images/p1_eval2.png" align="middle" width="500px"/>
+                    <figcaption style="font-family:arial;"align="middle">Level 1</figcaption>
+                  </td>
+                </tr>
+                <br>
+                <tr>
+                  <td>
+                    <img src="images/p1_eval3.png" align="middle" width="500px"/>
+                    <figcaption style="font-family:arial;"align="middle">Level 2</figcaption>
+                  </td>
+                  <td>
+                    <img src="images/p1_eval4.png" align="middle" width="500px"/>
+                    <figcaption style="font-family:arial;"align="middle">Level 3</figcaption>
+                  </td>
+                </tr>
+                <br>
+                <tr>
+                  <td>
+                    <img src="images/p1_eval5.png" align="middle" width="500px"/>
+                    <figcaption style="font-family:arial;"align="middle">Level 4</figcaption>
+                  </td>
+                  <td>
+                    <img src="images/p1_eval6.png" align="middle" width="500px"/>
+                    <figcaption style="font-family:arial;"align="middle">Level 5</figcaption>
+                  </td>
+                </tr>
+              </table>
+            </div>
+            <figure style="text-align:center;">
+              <img src="images/p1_eval7.png" alt="bzc" width="500px">
+              <figcaption style="font-family:arial;">Completed Curve</figcaption>
+            </figure>
+            <p style="font-family:arial;">
+              The next two images are based on a different curve which I created by moving the six points around.
+              The second image is when I modified the value t by scrolling over the GUI.
+            </p>
+            <div>
+              <table style="width=100%;">
+                <tr>
+                  <td>
+                    <img src="images/p1_diff_curve1.png" align="middle" width="500px"/>
+                    <figcaption style="font-family:arial;"align="middle">Different Curve</figcaption>
+                  </td>
+                  <td>
+                    <img src="images/p1_diff_curve2.png" align="middle" width="500px"/>
+                    <figcaption style="font-family:arial;"align="middle">Modified t value</figcaption>
+                  </td>
+                </tr>
+              </table>
+            </div>
+
+
+        <br>
+        <h2 style="font-family:arial;">Part 2: Bezier Surfaces with Separable 1D de Casteljau Subdivision</h2>
+            <p style="font-family:arial;">
+              Bezier surfaces are created from taking the Bezier curves in two dimensions. Given a surface point (u,v),
+              we can first use de Casteljau's algorithm in the u-direction by finding the four Bezier curves in the u-direction.
+              Evaluating u on each of these four curves will then give us a new set of control points which we can use in a final
+              call to de Casteljau's algorithm with parameter v which will output a final evaluated point for the Bezier surface.
+              <br>
+              <br>
+              To evaluate the Bezier surface at parameters (u, v) through 2D de Casteljau subdivision, I first
+              instantiated an array which will be filled with the control points for the "moving" Bezier curve
+              after evaluating point u on each of the four Bezier curves in the u-direction. This is done by
+              iterating through each row in the 2D array, controlPoints, and then applying de Casteljau's algorithm
+              with the ith-row of control points and u.
+              <br>
+              <br>
+              This process is made easier when I implemented the helper function, evaluate1D, which evaluates the Bezier
+              curve at parameter t (passed in as u from evaluating the Bezier patch) using 1D de Casteljau subdivision.
+              Given an array of control points, I recursively calculate the intermediate control points until I am left
+              with a single and final evaluated point.
+              <br>
+              <br>
+              Once I had the array of new control points, I then evaluated point v on the "moving" Bezier curve by performing
+              1D de Casteljau algorithm on the new controls points with parameter v. Finally, we output the final evaluated
+              point for the Bezier surface.
+              <br>
+              <br>
+              Using this method, we can render objects such as this teapot:
+            </p>
+            <div>
+              <table style="width=100%;">
+                <tr>
+                  <td>
+                    <img src="images/p2_wf1.png" align="middle" width="500px"/>
+                  </td>
+                  <td>
+                    <img src="images/p2_wf2.png" align="middle" width="500px"/>
+                  </td>
+                </tr>
+              </table>
+            </div>
+            <figure style="text-align:center;">
+              <img src="images/p2_wf3.png" alt="Teapot" width="800px">
+            </figure>
+
+        <br>
+        <div class="backtotop">
+          <button class="button">
+              <a href="#Top" class="button">Back to Top</a>
+          </button>
+        </div>
+
+        <br>
+        <h1 id="Part2" style="font-family:arial; text-align:center;">Section II: Sampling</h1>
+
+        <br>
+        <h2 style="font-family:arial;">Part 3: Average Normals for Half-Edge Meshes</h2>
+            <p style="font-family:arial;">
+              In the images in the left column down below, the teapot looks very low-poly and one can obviously see the rectangular
+              indentations that make up the mesh. However, we can introduce more realistic shading than the default flat shader such
+              that the teapot looks smooth by calculating the cross product of two of the triangle's edges. The magnitude of the
+              cross product is proportional to the triangle's area so this gives us the area-weighted average normals at a vertex.
+              <br>
+              <br>
+              We begin with a halfedge and traverse through the neighboring triangles surrounding the halfedge's point. Given a vertex,
+              call it point v0, we find the vertex positions of the remaining two points of the triangle by getting the h->next()
+              halfedge (point v1) and the h->next()->next() halfedge (point v2). Then we compute the difference vectors, v1-v0 and
+              v2-v0, and take the cross product of the resulting two edges. We accumulate all the normals and then return a
+              re-normalized unit vector.
+            </p>
+            <div>
+              <table style="width=100%;">
+                <tr>
+                  <td>
+                    <img src="images/p3_wf_OpenGL.png" align="middle" width="500px"/>
+                  </td>
+                  <td>
+                    <img src="images/p3_wf_GLSL.png" align="middle" width="500px"/>
+                  </td>
+                </tr>
+                <br>
+                <tr>
+                  <td>
+                    <img src="images/p3_OpenGL.png" align="middle" width="500px"/>
+                    <figcaption style="font-family:arial;"align="middle">Default OpenGL Shading without Surface Normals</figcaption>
+                  </td>
+                  <td>
+                    <img src="images/p3_GLSL.png" align="middle" width="500px"/>
+                    <figcaption style="font-family:arial;"align="middle">Default OpenGL Shading with Surface Normals</figcaption>
+                  </td>
+                </tr>
+              </table>
+            </div>
+
+        <br>
+        <h2 style="font-family:arial;">Part 4: Half-Edge Flip</h2>
+            <p style="font-family:arial;">
+              In order to implement the half-edge flip, I drew a diagram of two triangles which share an edge that is annotated
+              with all the related halfedges, edges, faces, and vertices. I kept careful track of how halfedges moved
+              once the shared edge was flipped so that it would be easier for reassignments in my implementation. The diagram also
+              served as a helpful debugging tool where I could inspect if I had incorrectly reassigned a variable. In the half-edge
+              flip function, I stored values for each halfedge, vertex, edge, and face then reassigned each of the variables one by
+              one. The helper function, setNeighbor, was very helpful and convenient to use in this part.
+            </p>
+            <div>
+              <table style="width=100%;">
+                <tr>
+                  <td>
+                    <img src="images/p4_before.png" align="middle" width="500px"/>
+                    <figcaption style="font-family:arial;"align="middle">Before Edge Flip</figcaption>
+                  </td>
+                  <td>
+                    <img src="images/p4_after.png" align="middle" width="500px"/>
+                    <figcaption style="font-family:arial;"align="middle">After Some Edge Flips</figcaption>
+                  </td>
+                </tr>
+              </table>
+            </div>
+            <h3 style="font-family:arial;">
+              The Case of the Disappearing Face
+            </h3>
+            <div>
+              <table style="width=100%;">
+                <tr>
+                  <td>
+                    <img src="images/p4_error1.png" align="middle" width="500px"/>
+                  </td>
+                  <td>
+                    <img src="images/p4_error2.png" align="middle" width="500px"/>
+                  </td>
+                </tr>
+              </table>
+            </div>
+            <p style="font-family:arial;">
+              I did run into a problem where every time I would try to flip an edge, the face kept disappearing. At first,
+              I thought it was an issue where I was incorrectly reassigning a face to a halfedge but after inspecting all
+              the halfedges, my implemented at that section seemed to be good. I also realized that the halfedge was not
+              actually flipping. That led me to believe that a reassignment was wrong. I then literally went back to the
+              drawing boards to my diagram to confirm that I had assigned everything correctly. Finally, upon inspection
+              of the entire block of code, I realized I had in fact incorrectly assigned a variable. When I was storing a
+              halfedge in a local variable, I accidentally assigned it to the twin() edge when I intended to assign it to
+              the next() edge. A small mistake that proved difficult to find but easy to fix.
+            </p>
+
+        <br>
+        <h2 style="font-family:arial;">Part 5: Half-Edge Split</h2>
+            <p style="font-family:arial;">
+              Building off of Part 4, I also used a diagram, this time color coded to easily distiguish between the various
+              elements, to help me visualize how each element would need to be reassigned and what new objects would be created.
+              In the half-edge split function, I first created a new vertex, three new edges, two new faces, and six new
+              halfedges which were necessary when a half-edge split occurred. Then analogously to Part 4, I stored locally each
+              related halfedge, vertex, edge, and face then reassigned each of the variables one by one.
+              <br>
+              <br>
+              There were no debugging quests this time around. After my minor bugs in part 4, I paid extra attention to how I was
+              reassigning each element, and luckily my implementation worked on the first go.
+            </p>
+            <div>
+              <table style="width=100%;">
+                <tr>
+                  <td>
+                    <img src="images/p5_justsplits_b.png" align="middle" width="500px"/>
+                    <figcaption style="font-family:arial;"align="middle">Before</figcaption>
+                  </td>
+                  <td>
+                    <img src="images/p5_justsplits_a.png" align="middle" width="500px"/>
+                    <figcaption style="font-family:arial;"align="middle">After a bunch of edge splits</figcaption>
+                  </td>
+                </tr>
+                <br>
+                <tr>
+                  <td>
+                    <img src="images/p5_combo_b.png" align="middle" width="500px"/>
+                    <figcaption style="font-family:arial;"align="middle">Before</figcaption>
+                  </td>
+                  <td>
+                    <img src="images/p5_combo_a.png" align="middle" width="500px"/>
+                    <figcaption style="font-family:arial;"align="middle">After a combination of edge flips and edge splits</figcaption>
+                  </td>
+                </tr>
+              </table>
+            </div>
+
+
+        <br>
+        <h2 style="font-family:arial;">Part 6: Loop Subdivision for Mesh Upsampling</h2>
+            <p style="font-family:arial;">
+              Loop subdivision upsamples a mesh by increasing the amount of triangles and then interpolating the vertices so
+              that a low-poly mesh becomes higher in resolution as you continue to apply more iterations of Loop subdivision.
+              In other words, the sharp corners and edges of the mesh start to smooth out.
+              <br>
+              <br>
+              To implement Loop subdivision, I followed the very helpful walkthrough on the project spec. We begin by
+              calculating the new vertex positions on the mesh because the weights depend on the neighboring vertices in their
+              original location. If we update as we go, we will end up averaging vertices that have themselves already been
+              averaged which will change the appearance of the mesh. To calculate the new positions of these original vertices,
+              we use the formula given in the project spec:
+            </p>
+            <figure style="text-align:center;">
+              <img src="images/p6_formula_oldVertices.png" alt="Old Vertices" width="450px">
+            </figure>
+            <p style="font-family:arial;">
+              where n is the vertex's degree, u is a constant that equals 3/16 when degree=3 and 3/(8n) otherwise, and
+              neighbor_position_sum is the sum of the positions of the vertex's neighbors. We store these new positions in the
+              vertex's newPosition attribute which we will then transfer over later. Here we also mark each vertex as "old"
+              which will help us in future steps.
+              <br>
+              <br>
+              Next we compute the new weighted position of the vertices that are created when we split an edge. We don't actually
+              split the edges here, however. To calculate the positions of these new vertices, we use the following formula:
+            </p>
+            <figure style="text-align:center;">
+              <img src="images/p6_formula_newVertices.png" alt="New Vertices" width="250px">
+            </figure>
+            <p style="font-family:arial;">
+              where A and B are the vertices connected to the edge and C and D are the vertices opposite to the edge. We store the
+              results in the edge's newPosition attribute and also mark each edge as "old."
+              <br>
+              <br>
+              Now that we have all the updated vertices, we can split each edge in the mesh, making sure that we only split edges that
+              were tagged as "old." As we split each edge, we mark these vertices as "new" and transfer over edge->newPosition over to
+              the vertex's newPosition. I also mark the newly created edges as "old" and "new" respectfully based on how I reassigned
+              elements in Part 5. An edge is "old" if it originated from an old edge whereas the other two are new.
+              <br>
+              <br>
+              We now have manipulated the mesh topology by splitting each triangle into four triangles, but the triangles vary in shape.
+              Thus, to equalize the each triangle's shape we flip any "new" edge that connects an old and new vertex.
+              <br>
+              <br>
+              Finally, we copy over the weighted position in vertex->newPosition to vertex->Position, which allows us to at last
+              upsample meshes:
+            </p>
+            <figure style="text-align:center;">
+              <img src="images/p6_torus_all.png" alt="Torus All" width="800px">
+            </figure>
+            <p style="font-family:arial;">
+              I ran into several problems where the edges were not flipping properly during subdivision. And as a result, the
+              icosahedron mesh ended up looking like a crumpled piece of paper. It took me a while before
+              I realized that the bug occurred in my half-edge flip and split functions. Both had worked successfully (or so I
+              thought) in parts 4 and 5, but I failed to recognize that certain connections weren't tested. My error was that
+              I was reassigning halfedges outside of the two main triangles which led to incorrect behavior when splitting and
+              flipping multiple edges as I traversed through each edge. After fixing this by only reassigning the halfedges
+              relating to the two current triangles, my implementation worked successfully.
+            </p>
+            <div>
+              <table style="width=100%;">
+                <tr>
+                  <td>
+                    <img src="images/p6_error1.png" align="middle" width="500px"/>
+                    <figcaption style="font-family:arial;"align="middle">Wrong edges were flipped</figcaption>
+                  </td>
+                  <td>
+                    <img src="images/p6_error2.png" align="middle" width="500px"/>
+                    <figcaption style="font-family:arial;"align="middle">Some edges were left behind</figcaption>
+                  </td>
+                </tr>
+              </table>
+            </div>
+            <br>
+            <p style="font-family:arial;">
+                I further evaluated how repeatedly applying subdivision affects certain meshes. In dae/cube.dae, the cube
+                subdivides asymmetrically:
+            </p>
+            <figure style="text-align:center;">
+              <img src="images/p6_cube_all.png" alt="Cube All" width="800px">
+            </figure>
+            <p style="font-family:arial;">
+                The cube subdivides asymmetrically because of the way the diagonals (edges) are facing. Loop subdivision weights
+                each vertice with respect to its neighbors so some vertices in the cube will be weighted more heavily because
+                some vertices have a higher degree than others. Flipping edges prior to subdivision will not enable the cube to
+                subdivide symmetrically because essentially all we are doing here is redistributing what the neighboring vertices
+                are connected to. Still, some vertices will have a higher degree than others. However, if we first split edges,
+                we can balance out all the vertices. In the instance of the cube, if we split edges such that each face now has
+                four faces, we will get a symmetric cube during subdivision:
+            </p>
+            <figure style="text-align:center;">
+              <img src="images/p6_cube_sym_all.png" alt="Cube Sym All" width="800px">
+            </figure>
+
+        <!-- <br>
+        <div class="backtotop">
+          <button class="button">
+              <a href="#Top" class="button">Back to Top</a>
+          </button>
+        </div> -->
+
+        <!-- <br>
+        <h1 id="Part3" style="font-family:arial;text-align:center;">Section 3: Shaders</h1>
+        <p style="font-family:arial;">
+            If you are not participating in the optional art competition, don't worry about this section!</p>
+        </p>
+
+        <br>
+        <h2 style="font-family:arial;">Part 7: Fun with Shaders</h2> -->
+
+        <br>
+        <h1 style="font-family:arial;" align="middle">Section 3: Mesh Competition</h2>
+        <h2 style="font-family:arial;">Part 7: Design your own mesh!</h3>
+
+        <br>
+        <div class="backtotop">
+          <button class="button">
+              <a href="#Top" class="button">Back to Top</a>
+          </button>
+        </div>
+        <br>
+        <br>
+
+    </body>
+</html>
