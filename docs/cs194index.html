@@ -38,18 +38,11 @@
           opacity: 0.5;
         }
 
-        .text184 {
-          background-color: rgba(0,0,0,0.3);
-          font-family: arial;
-          font-size: 30px;
-          color: #fff;
-          position: absolute;
-          /* bottom: 90px; */
-          bottom: -26px;
-          right: 90px;
+        .container:hover .imageMosaic {
+          opacity: 0.5;
         }
 
-        .text194 {
+        .text {
           background-color: rgba(0,0,0,0.3);
           font-family: arial;
           font-size: 30px;
@@ -57,7 +50,31 @@
           position: absolute;
           /* bottom: 90px; */
           bottom: -26px;
-          right: 45px;
+        }
+
+        button {
+          background-color: #008080; /* teal */
+          border: none;
+          color: white;
+          padding: 16px 32px;
+          width: 175px;
+          text-align: center;
+          border-radius: 4px;
+          font-size: 16px;
+          margin: 4px 2px;
+          opacity: 0.6;
+          transition: 0.3s;
+          display: inline-block;
+          text-decoration: none;
+          cursor: pointer;
+          position:
+        }
+        button:hover {opacity: 1}
+        .backtotop {text-align: right;}
+        a {
+          text-decoration: none;
+          color: white;
+          display: block;
         }
 
     </style>
@@ -66,6 +83,18 @@
         <h3 class="name" style="font-family:arial;">Maddie Pahati</h3>
 
         <h1 class="proj" style="font-family:arial; text-align:center;">CS194-26: Computational Photography</h1>
+
+        <div align="middle">
+          <button class="button">
+              <a href="index.html" class="button">Home</a>
+          </button>
+          <button class="button">
+              <a href="cs184index.html" class="button">CS184</a>
+          </button>
+          <button class="button">
+              <a href="cs194index.html" class="button">CS194</a>
+          </button>
+        </div>
 
         <br>
         <br>
@@ -78,13 +107,13 @@
           <div class="container">
             <a href="../cs194/p1/index.html">
               <img class="image" src="images/train.jpg" alt="Colorizing" style="text-align:center;" width="460">
-              <p class="text194">Colorizing the Prokudin-Gorskii Photo Collection</p>
+              <p class="text">Colorizing the Prokudin-Gorskii Photo Collection</p>
             </a>
           </div>
           <div class="container">
             <a href="../cs194/p3/index.html">
               <img class="image" src="images/dali.jpg" alt="Frequencies" style="text-align:center;" width="460">
-              <p class="text194">Frequencies and Gradients</p>
+              <p class="text" style="right:50px;">Frequencies and Gradients</p>
             </a>
           </div>
         </div>
@@ -99,13 +128,13 @@
           <div class="container">
             <a href="../cs194/p4/index.html">
               <img class="image" src="images/morph.jpg" alt="Morph" style="text-align:center;" width="460">
-              <p class="text184">Face Morphing</p>
+              <p class="text" style="right:130px;">Face Morphing</p>
             </a>
           </div>
           <div class="container">
             <a href="../cs194/p5/index.html">
               <img class="image" src="images/tarot.jpg" alt="Depth" style="text-align:center;" width="460">
-              <p class="text194">Depth Refocusing & Aperture Adjustment</p>
+              <p class="text">Depth Refocusing & Aperture Adjustment</p>
             </a>
           </div>
         </div>
@@ -120,13 +149,13 @@
           <div class="container">
             <a href="../cs194/p6/index.html">
               <img class="imageMosaic" src="images/canada.jpg" alt="Mosaics" style="text-align:center;" width="460">
-              <p class="text184">Auto[Stitching] Photo Mosaics</p>
+              <p class="text" style="right:30px;">Auto[Stitching] Photo Mosaics</p>
             </a>
           </div>
           <div class="container">
             <a href="../cs194/pfinal/index.html">
               <img class="image" src="images/boats.jpg" alt="Final Proj" style="text-align:center;" width="460">
-              <p class="text194">Final Project:<br>Vertigo Shot & Fake Miniatures</p>
+              <p class="text" style="right:25px;">Final Project:<br>Vertigo Shot & Fake Miniatures</p>
             </a>
           </div>
         </div>

@@ -28,7 +28,7 @@
           opacity: 0.5;
         }
 
-        .text184 {
+        .text {
           background-color: rgba(0,0,0,0.3);
           font-family: arial;
           font-size: 30px;
@@ -36,18 +36,31 @@
           position: absolute;
           /* bottom: 90px; */
           bottom: -26px;
-          right: 90px;
         }
 
-        .text194 {
-          background-color: rgba(0,0,0,0.3);
-          font-family: arial;
-          font-size: 30px;
-          color: #fff;
-          position: absolute;
-          /* bottom: 90px; */
-          bottom: -26px;
-          right: 45px;
+        button {
+          background-color: #008080; /* teal */
+          border: none;
+          color: white;
+          padding: 16px 32px;
+          width: 175px;
+          text-align: center;
+          border-radius: 4px;
+          font-size: 16px;
+          margin: 4px 2px;
+          opacity: 0.6;
+          transition: 0.3s;
+          display: inline-block;
+          text-decoration: none;
+          cursor: pointer;
+          position:
+        }
+        button:hover {opacity: 1}
+        .backtotop {text-align: right;}
+        a {
+          text-decoration: none;
+          color: white;
+          display: block;
         }
 
     </style>
@@ -56,6 +69,15 @@
         <h3 class="name" style="font-family:arial;">Maddie Pahati</h3>
 
         <h1 class="proj" style="font-family:arial; text-align:center;">Coding Projects</h1>
+
+        <div align="middle">
+          <button class="button">
+              <a href="cs184index.html" class="button">CS184</a>
+          </button>
+          <button class="button">
+              <a href="cs194index.html" class="button">CS194</a>
+          </button>
+        </div>
 
         <br>
         <br>
@@ -68,13 +90,13 @@
           <div class="container">
             <a href="cs184index.html">
               <img class="image" src="images/lion.png" alt="CS184" style="text-align:center;" width="460">
-              <p class="text184">CS184<br>Computer Graphics</p>
+              <p class="text" style="right:90px;">CS184<br>Computer Graphics</p>
             </a>
           </div>
           <div class="container">
             <a href="cs194index.html">
               <img class="image" src="images/train.jpg" alt="CS194" style="text-align:center;" width="460">
-              <p class="text194">CS194-26<br>Computational Photography</p>
+              <p class="text" style="right:45px;">CS194-26<br>Computational Photography</p>
             </a>
           </div>
         </div>

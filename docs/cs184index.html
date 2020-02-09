@@ -28,7 +28,7 @@
           opacity: 0.5;
         }
 
-        .text184 {
+        .text {
           background-color: rgba(0,0,0,0.3);
           font-family: arial;
           font-size: 30px;
@@ -36,18 +36,31 @@
           position: absolute;
           /* bottom: 90px; */
           bottom: -26px;
-          right: 90px;
         }
 
-        .text194 {
-          background-color: rgba(0,0,0,0.3);
-          font-family: arial;
-          font-size: 30px;
-          color: #fff;
-          position: absolute;
-          /* bottom: 90px; */
-          bottom: -26px;
-          right: 45px;
+        button {
+          background-color: #008080; /* teal */
+          border: none;
+          color: white;
+          padding: 16px 32px;
+          width: 175px;
+          text-align: center;
+          border-radius: 4px;
+          font-size: 16px;
+          margin: 4px 2px;
+          opacity: 0.6;
+          transition: 0.3s;
+          display: inline-block;
+          text-decoration: none;
+          cursor: pointer;
+          position:
+        }
+        button:hover {opacity: 1}
+        .backtotop {text-align: right;}
+        a {
+          text-decoration: none;
+          color: white;
+          display: block;
         }
 
     </style>
@@ -56,6 +69,18 @@
         <h3 class="name" style="font-family:arial;">Maddie Pahati</h3>
 
         <h1 class="proj" style="font-family:arial; text-align:center;">CS184: Computer Graphics</h1>
+
+        <div align="middle">
+          <button class="button">
+              <a href="index.html" class="button">Home</a>
+          </button>
+          <button class="button">
+              <a href="cs184index.html" class="button">CS184</a>
+          </button>
+          <button class="button">
+              <a href="cs194index.html" class="button">CS194</a>
+          </button>
+        </div>
 
         <br>
         <br>
@@ -68,13 +93,13 @@
           <div class="container">
             <a href="../cs184/p1_rasterizer/index.html">
               <img class="image" src="images/lion.png" alt="Rasterizer" style="text-align:center;" width="460">
-              <p class="text184">Rasterizer</p>
+              <p class="text" style="right:160px;">Rasterizer</p>
             </a>
           </div>
           <div class="container">
             <a href="../cs184/p2_meshedit/index.html">
               <img class="image" src="images/cows.png" alt="Mesh Edit" style="text-align:center;" width="460">
-              <p class="text194">Mesh Editor</p>
+              <p class="text" style="right:145px;">Mesh Editor</p>
             </a>
           </div>
         </div>
@@ -89,13 +114,13 @@
           <div class="container">
             <a href="../cs184/p31_pathtracer/index.html">
               <img class="image" src="images/spheres.png" alt="Pathtracer P1" style="text-align:center;" width="460">
-              <p class="text184">Pathtracer Part 1</p>
+              <p class="text" style="right:115px;">Pathtracer Part 1</p>
             </a>
           </div>
           <div class="container">
             <a href="../cs184/p32_pathtracer/index.html">
               <img class="image" src="images/dragon.png" alt="Pathtracer P2" style="text-align:center;" width="460">
-              <p class="text194">Pathtracer Part 2</p>
+              <p class="text" style="right:115px;">Pathtracer Part 2</p>
             </a>
           </div>
         </div>
@@ -110,7 +135,7 @@
           <div class="container">
             <a href="../cs184/p4_clothsim/index.html">
               <img class="image" src="images/cloth.png" alt="Cloth Sim" style="text-align:center;" width="460">
-              <p class="text184">Cloth Sim</p>
+              <p class="text" style="right:160px;">Cloth Sim</p>
             </a>
           </div>
         </div>
